@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module2/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:38 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module2.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 2 - Using SQL INSERT to populate a table
+   </h2>
+   <h3>
+    Inserting Rows of data
+   </h3>
+   <p>
+    Once you have created a database table, you
+        perform an
+    <b>
+     insert query
+    </b>
+    to insert a row
+        of data into that table. The basic syntax
+        for an insert query is as follows:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+insert into &lt;tablename&gt; (field1, field2, field3) values (arg1, arg2, arg3);</code></pre>
+   <p>
+    That is, you specify the table name, a
+        list of fields and then the values to
+        insert into those fields. When you are inserting
+    <b>
+     literal strings
+    </b>
+    for a value, you must enclose
+        the literal string with single-quotes. You cannot use
+        double-quotes to enclose a literal string.
+   </p>
+   <h3>
+    A simple example
+   </h3>
+   <p>
+    Consider a simple database for a school library.
+        For this database, you want to keep track
+        of users (people who borrow books), books and
+        transactions (which user borrowed which book). A possible
+        "init.sql" to create the tables for this database
+        would be:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- init.sql
+drop table if exists users cascade;
+drop table if exists books cascade;
+drop table if exists transactions cascade;
+
+create table users (
+   id serial,
+   first_name varchar(30),
+   last_name varchar(40),
+   e_mail varchar(100),
+   password varchar(40),
+   primary key (id)
+);
+
+create table books (
+   id serial,
+   title text,
+   author text,
+   category text,
+   isbn text,
+   primary key (id)
+);
+
+create table transactions (
+   id serial,
+   user_id integer references users(id),
+   book_id integer references books(id),
+   borrow_date date,
+   primary key (id)
+);</code></pre>
+   <p>
+    Let's insert some data into these tables with
+        a SQL script. Here is a script "add_initial_data.sql"
+        that can be used to do this:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- add_initial_data.sql
+insert into users (first_name,last_name,e_mail,password)
+   values ('Jane','Doe','janedoe@gmail.com', md5('janey'));
+insert into users (first_name,last_name,e_mail,password)
+   values ('John','Doe','johndoe@gmail.com', md5('john'));
+insert into users (first_name,last_name,e_mail,password)
+   values ('Bill','Gates','billg@hotmail.com', md5('windows'));
+
+insert into books (title,author,category,isbn) values
+   ('The Cat in the Hat','Dr. Seuss','childrens','111111');
+insert into books (title,author,category,isbn) values
+   ('Prey','Michael Crichton','sci-fi','111112');
+insert into books (title,author,category,isbn) values
+   ('Ender''s Shadow','Orson Scott Card','sci-fi','111113');
+
+insert into transactions (user_id,book_id,borrow_date) values
+   (1,1,'10-20-2001');
+insert into transactions (user_id,book_id,borrow_date) values
+   (2,1,'11-25-2001');
+insert into transactions (user_id,book_id,borrow_date) values
+   (3,2,'11-20-2002');
+insert into transactions (user_id,book_id,borrow_date) values
+   (3,3,'11-20-2002');
+insert into transactions (user_id,book_id,borrow_date) values
+   (1,2,'02-25-2003');</code></pre>
+   <p>
+    To load these two scripts into the database,
+        you would do the following:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ psql -U bob -W sql_example_db
+Password for user bob: 
+psql (9.5.10)
+Type "help" for help.
+
+sql_example_db=&gt; \i init.sql 
+psql:init.sql:2: NOTICE: drop cascades to constraint transactions_user_id_fkey on table transactions
+DROP TABLE
+psql:init.sql:3: NOTICE: drop cascades to constraint transactions_book_id_fkey on table transactions
+DROP TABLE
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+sql_example_db=&gt; \i add_initial_data.sql 
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1</code></pre>
+   <p>
+    By including the "init.sq" script again, the tables
+        are cleared out before the data is inserted
+        using the "add_initial_data.sql" script.
+   </p>
+   <p>
+    Let's examine the "add_initial_data.sql" script in more detail.
+        Lines 2-7 insert rows into the
+    <b>
+     users
+    </b>
+    table.
+        Note that you should never store passwords in
+        plain text, so the
+    <b>
+     md5()
+    </b>
+    function is used
+        to hash the passwords. Unlike encryption, hashing is
+        a one way process. A hashed password cannot
+        be converted back into the original password. Instead,
+        you hash the password entered by the user
+        to see if that hash matches the stored
+        hash.
+   </p>
+   <p>
+    Lines 9-14 insert rows into the
+    <b>
+     books
+    </b>
+    table.
+        These are just regular insert queries, but note
+        on line 14 how an apostrophe is added
+        to a literal string. That is, we want
+        to say the title of the book is
+        "Ender's Shadow". To place an apostrophe inside a
+        literal string, you must use a special escape
+        character. You use a double apostrophe like this:
+   </p>
+   <p>
+    'Ender''s Shadow'
+   </p>
+   <p>
+    So, using two single quotes in a row
+        inside a literal string (which must be single-quoted)
+        is how to include an apostrophe.
+   </p>
+   <p>
+    Lines 16-24 insert rows into the
+    <b>
+     transactions
+    </b>
+    table.
+        Lines 16-17 are inserting a record that Jane
+        Doe borrowed The Cat in the Hat on
+        October 20, 2001. Note how PostgreSQL converts the
+        literal string '10-20-2001' into a valid date. Lines
+        18-19 insert a record that John Doe borrowed
+        The Cat in the Hat on November 25,
+        2001, and so forth.
+   </p>
+   <p>
+    If you run a select query on the
+    <b>
+     transactions
+    </b>
+    table, you will see this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+sql_example_db=&gt; select * from transactions;
+id | user_id | book_id | borrow_date 
+----+---------+---------+-------------
+  1 |       1 |       1 | 2001-10-20
+  2 |       2 |       1 | 2001-11-25
+  3 |       3 |       2 | 2002-11-20
+  4 |       3 |       3 | 2002-11-20
+  5 |       1 |       2 | 2003-02-25</code></pre>
+   <p>
+    Note how the date is displayed in the
+        default format for PostgreSQL and that the order
+        is different from the literal string that was
+        used to insert the record. Also, note that
+        just displaying this table is not really informative
+        as you cannot figure out who borrowed what
+        book without looking at the
+    <b>
+     users
+    </b>
+    and
+    <b>
+     books
+    </b>
+    tables. To obtain a more informative look, you
+        would want to create a view for the
+        database. Creating views is covered on this
+    <a href="../module3/objective4.html" target="_blank">
+     page
+    </a>
+    .
+   </p>
+   <p>
+    One more note about the
+    <b>
+     users
+    </b>
+    table. A
+        better definition would put a
+    <b>
+     constraint
+    </b>
+    on the
+    <b>
+     e_mail
+    </b>
+    field. The constraint that should be used
+        for that field is the
+    <b>
+     unique
+    </b>
+    constraint. Here
+        is the revised version of "init.sql" that does
+        this:
+   </p>
+   <pre class="line-numbers" data-line="10"><code class="language-sql">
+-- init.sql
+drop table if exists users cascade;
+drop table if exists books cascade;
+drop table if exists transactions cascade;
+
+create table users (
+   id serial,
+   first_name varchar(30),
+   last_name varchar(40),
+   e_mail varchar(100) unique,
+   password varchar(40),
+   primary key (id)
+);
+
+create table books (
+   id serial,
+   title text,
+   author text,
+   category text,
+   isbn text,
+   primary key (id)
+);
+
+create table transactions (
+   id serial,
+   user_id integer references users(id),
+   book_id integer references books(id),
+   borrow_date date,
+   primary key (id)
+);</code></pre>
+   <p>
+    Note on line 10 that the unique constraint
+        has been added. This will make it so
+        that no two records in the users table
+        can have the same
+    <b>
+     e_mail
+    </b>
+    value. That is
+        an important constraint to use, as this will
+        be important if when the
+    <b>
+     users
+    </b>
+    table is
+        used for authentication purposes.
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module2.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module2/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:39 GMT -->
+</html>

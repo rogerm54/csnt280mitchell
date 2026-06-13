@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective3.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 4.3 - Updating data using a SQL query
+   </h2>
+   <p>
+    Updating Records
+   </p>
+   <p>
+    A very important procedure when using a database
+        as the backend for a web application is
+        the procedure to
+    <b>
+     update
+    </b>
+    a record. Consider the
+        following script that initializes a database table and
+        populates that table with some data:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- init.sql
+drop table if exists cars cascade;
+
+create table cars(
+   id serial,
+   make text,
+   model text,
+   price decimal(10,2),
+   primary key (id)
+);
+insert into cars (id, make, model, price)
+   values (1,'Toyota','Corolla',18500.00);
+insert into cars (id, make, model, price)
+   values (2,'Toyota','Camry',23495.00);
+insert into cars (id, make, model, price)
+   values (3,'Toyota','Highlander',30630.00);
+insert into cars (id, make, model, price)
+   values (4,'Honda','Accord',24460.00);
+insert into cars (id, make, model, price)
+   values (5,'Honda','Civic',19730.00);
+insert into cars (id, make, model, price)
+   values (6,'Honda','Fit',17080.00);
+insert into cars (id, make, model, price)
+   values (7,'Nissan','Altima',23385.00);
+insert into cars (id, make, model, price)
+   values (8,'Nissan','Leaf',30875.00);
+insert into cars (id, make, model, price)
+   values (9,'Nissan','Maxima',33495.00);
+insert into cars (id, make, model, price)
+   values (10,'Chevrolet','Camaro',26900.00);
+insert into cars (id, make, model, price)
+   values (11,'Chevrolet','Corvette',56590.00);
+insert into cars (id, make, model, price)
+   values (12,'Chevrolet','Malibu',22555.00);</code></pre>
+   <p>
+    Assume that you have created a database and
+        included this script. Here is the result of
+        displaying all the results from the cars table:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cars_db=&gt; select * from cars;
+ id |   make    |   model    | price   
+----+-----------+------------+----------
+  1 | Toyota    | Corolla    | 18500.00
+  2 | Toyota    | Camry      | 23495.00
+  3 | Toyota    | Highlander | 30630.00
+  4 | Honda     | Accord     | 24460.00
+  5 | Honda     | Civic      | 19730.00
+  6 | Honda     | Fit        | 17080.00
+  7 | Nissan    | Altima     | 23385.00
+  8 | Nissan    | Leaf       | 30875.00
+  9 | Nissan    | Maxima     | 33495.00
+ 10 | Chevrolet | Camaro     | 26900.00
+ 11 | Chevrolet | Corvette   | 56590.00
+ 12 | Chevrolet | Malibu     | 22555.00
+(12 rows)</code></pre>
+   <h4>
+    Updating a single record
+   </h4>
+   <p>
+    Suppose we found out that the Toyota Corolla
+        is supposed to have a price of $18,600.
+        We can update that record using the following
+        SQL command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+update cars set price=18600 where id=1;</code></pre>
+   <p>
+    Let's run this update and show all the
+        cars:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cars_db=&gt; update cars set price=18600 where id=1;
+UPDATE 1
+cars_db=&gt; select * from cars;
+ id |   make    |   model    | price   
+----+-----------+------------+----------
+  2 | Toyota    | Camry      | 23495.00
+  3 | Toyota    | Highlander | 30630.00
+  4 | Honda     | Accord     | 24460.00
+  5 | Honda     | Civic      | 19730.00
+  6 | Honda     | Fit        | 17080.00
+  7 | Nissan    | Altima     | 23385.00
+  8 | Nissan    | Leaf       | 30875.00
+  9 | Nissan    | Maxima     | 33495.00
+ 10 | Chevrolet | Camaro     | 26900.00
+ 11 | Chevrolet | Corvette   | 56590.00
+ 12 | Chevrolet | Malibu     | 22555.00
+  1 | Toyota    | Corolla    | 18600.00
+(12 rows)</code></pre>
+   <p>
+    Note that the Toyota Corolla record shows up
+        last, because it is the latest record to
+        be updated. Also note that the price has
+        been updated. The basic syntax for updating a
+        single record would be:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+update &lt;table_name&gt; set &lt;field_name1&gt;=val1 where id=&lt;id&gt;;</code></pre>
+   <p>
+    Make sure that to enclose the value in
+        single quotes if the field is a text
+        field.
+   </p>
+   <h4>
+    Updating several records
+   </h4>
+   <p>
+    Suppose we found out that Chevrolet was increasing
+        the price of all of their cars by
+        3%. This could be done by running the
+        following update query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+update cars set price=1.03*price where make='Chevrolet';</code></pre>
+   <p>
+    Here is the result of running that SQL
+        command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cars_db=&gt; update cars set price=1.03*price where make='Chevrolet';
+UPDATE 3
+cars_db=&gt; select * from cars;
+ id |   make    |   model    | price   
+----+-----------+------------+----------
+  2 | Toyota    | Camry      | 23495.00
+  3 | Toyota    | Highlander | 30630.00
+  4 | Honda     | Accord     | 24460.00
+  5 | Honda     | Civic      | 19730.00
+  6 | Honda     | Fit        | 17080.00
+  7 | Nissan    | Altima     | 23385.00
+  8 | Nissan    | Leaf       | 30875.00
+  9 | Nissan    | Maxima     | 33495.00
+  1 | Toyota    | Corolla    | 18600.00
+ 10 | Chevrolet | Camaro     | 27707.00
+ 11 | Chevrolet | Corvette   | 58287.70
+ 12 | Chevrolet | Malibu     | 23231.65
+(12 rows)</code></pre>
+   <p>
+    So, as you can see the
+    <b>
+     where
+    </b>
+    clause
+        is used to specify which records get updated.
+   </p>
+   <h4>
+    Updating several fields in a record
+   </h4>
+   <p>
+    Suppose you realize that the Toyota Camry record
+        is incorrect. This record was supposed to be
+        for a Toyota Camry Hybrid that has a
+        price of $32,900. Here is how to update
+        that record:
+   </p>
+   <p>
+    update cars set model='Camry Hybrid', price=32900 where id=2;
+   </p>
+   <p>
+    Here is the result of running that update
+        query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cars_db=&gt; update cars set model='Camry Hybrid', price=32900 where id=2;
+UPDATE 1
+cars_db=&gt; select * from cars;
+ id |   make    |    model     | price   
+----+-----------+--------------+----------
+  3 | Toyota    | Highlander   | 30630.00
+  4 | Honda     | Accord       | 24460.00
+  5 | Honda     | Civic        | 19730.00
+  6 | Honda     | Fit          | 17080.00
+  7 | Nissan    | Altima       | 23385.00
+  8 | Nissan    | Leaf         | 30875.00
+  9 | Nissan    | Maxima       | 33495.00
+  1 | Toyota    | Corolla      | 18600.00
+ 10 | Chevrolet | Camaro       | 27707.00
+ 11 | Chevrolet | Corvette     | 58287.70
+ 12 | Chevrolet | Malibu       | 23231.65
+  2 | Toyota    | Camry Hybrid | 32900.00
+(12 rows)</code></pre>
+   <p>
+    As you can see, if you need to
+        update more than one field, you just separate
+        each field and value using a comma.
+   </p>
+   <h4>
+    Updating the entire table
+   </h4>
+   <p>
+    Suppose a new tax causes all the cars
+        to increase their price by 1.5%. You could
+        update all of the records using this SQL
+        command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+update cars set price=1.015*price;</code></pre>
+   <p>
+    Here is the result of running that update
+        query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cars_db=&gt; update cars set price=1.015*price;
+UPDATE 12
+cars_db=&gt; select * from cars;
+ id |   make    |    model     | price   
+----+-----------+--------------+----------
+  3 | Toyota    | Highlander   | 31089.45
+  4 | Honda     | Accord       | 24826.90
+  5 | Honda     | Civic        | 20025.95
+  6 | Honda     | Fit          | 17336.20
+  7 | Nissan    | Altima       | 23735.78
+  8 | Nissan    | Leaf         | 31338.13
+  9 | Nissan    | Maxima       | 33997.43
+  1 | Toyota    | Corolla      | 18879.00
+ 10 | Chevrolet | Camaro       | 28122.61
+ 11 | Chevrolet | Corvette     | 59162.02
+ 12 | Chevrolet | Malibu       | 23580.12
+  2 | Toyota    | Camry Hybrid | 33393.50
+(12 rows)</code></pre>
+   <h3>
+    Running an update using PHP PDO
+   </h3>
+   <p>
+    Suppose you are using a PHP script to
+        update a record. Assume that you have already
+        connected to the backend database and the database
+        connection is stored in
+    <b>
+     $pdo
+    </b>
+    . Assume that the
+        price of the Honda Fit is going to
+        be updated to $18557. Also assume that the
+        price has been stored in a PHP variable
+        called
+    <b>
+     $price
+    </b>
+    and that the id for the
+        record is stored in
+    <b>
+     $id
+    </b>
+    . This is what
+        the PHP code would look like:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-php">
+$sql = "update cars set price=:price where id=:id";
+$statement = $pdo-&gt;prepare($sql);
+$myarray = array();
+$myarray[':price'] = $price;
+$myarray[':id'] = $id;
+$statement-&gt;execute($myarray);</code></pre>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective3.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+</html>

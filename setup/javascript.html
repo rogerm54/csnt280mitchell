@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/setup/javascript.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:24 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Web based text file processing using JavaScript
+   </h2>
+   <h3>
+    Processing a text file on a web page
+   </h3>
+   <p>
+    Learning how to process a text file on
+        a web page is a useful introduction to
+        writing web applications using JavaScript. If you want
+        to be able to write a web application
+        you will need to be able to build
+        the web front end, even if the back
+        end is implemented using Node.js.
+   </p>
+   <p>
+    Save the following file, "readTextFile.html" in a directory
+        that contains the file you want to process.
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function init() {
+            console.log('init() called');
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    Line 1 tells the browser to use HTML5.
+        Line 2 and line 14 are the start
+        and end tags for the &lt;html&gt; element. Lines
+        3-11 define the &lt;head&gt; element. This is where
+        your JavaScript code should go. Line 4 makes
+        it so that the UTF-8 character set is
+        used to display all characters on the web
+        page. That is a form of security as
+        some malicious codes are prevented by specifying this
+        character set. Lines 5-10 define a &lt;script&gt; element
+        that holds JavaScript code.
+   </p>
+   <p>
+    Line 6 makes it so that when the
+        body of the web page completes loading the
+    <b>
+     init()
+    </b>
+    function is called. You will probably see
+        JavaScript code that is placed at the end
+        of the &lt;body&gt; element to have this same
+        effect. However, to put JavaScript code is considered
+        by many (including your instructor) to be bad
+        practice as it is better to keep your
+        JavaScript code separate from the HTML markup in
+        the &lt;body&gt; element.
+   </p>
+   <p>
+    Lines 7-9 define the
+    <b>
+     init()
+    </b>
+    function. At this
+        point all this function does is print 'init()
+        called' to the console on line 6.
+   </p>
+   <p>
+    If you open "readTextFile.html" in Chromium (or Chrome
+        or Brave), hitting F12 will bring up the
+        developer's console that allows you to see what
+        is printed using
+    <b>
+     console.log()
+    </b>
+    . So, when you are
+        doing JavaScript programming, you should have the developer's
+        console open.
+   </p>
+   <p>
+    Firefox has changed its developer console so that
+        it no longer displays console.log() output automatically. So,
+        avoid using Firefox for JavaScript program development. Once
+        your program works correctly, you can try it
+        out on Firefox. The program should work, it
+        is just that it will be easier to
+        get the program to work if you use
+        Chrome because using console.log() is an essential debugging
+        tool.
+   </p>
+   <h3>
+    Using the Node.js http-server package
+   </h3>
+   <p>
+    When creating web applications in JavaScript, you will
+        eventually need to have the web pages served
+        out. Otherwise, web browsers like Chrome will encounter
+        problems with accessing local files and also things
+        like window.localStorage and IndexedDB. In addition, when we
+        create a web application that has to connect
+        to a database backend, the web front end
+        must be served using a http server so
+        that we can whitelist the request for the
+        Node.js server. So, let's learn how to serve
+        the pages using the Node.js package
+    <b>
+     http-server
+    </b>
+    . This
+        package is installed on your virtual machine in
+        lab, but if this is not on your
+        Ubuntu machine, you can install it using the
+        following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+npm install -g http-server</code></pre>
+   <p>
+    The
+    <b>
+     -g
+    </b>
+    switch will install this package globally
+        so http-server can be run from any directory.
+   </p>
+   <p>
+    We need to start the http-server in the
+        directory that contains all the files of interest.
+        These are the files "readTextFile.html" and "courses.csv". Assume
+        that these are in the directory
+    <b>
+     ~/Desktop/text_processing
+    </b>
+    . Then,
+        perform the following steps:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/text_processing
+$ http-server -a localhost -p 8000</code></pre>
+   <p>
+    The options that we will make use of
+        are:
+   </p>
+   <table border='1"'>
+    <tr>
+     <th>
+      Option
+     </th>
+     <th>
+      Description
+     </th>
+    </tr>
+    <tr>
+     <td>
+      <b>
+       -a
+      </b>
+     </td>
+     <td>
+      Address to use (default: 0.0.0.0)
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <b>
+       -p
+      </b>
+     </td>
+     <td>
+      Port to use (default 8080)
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <b>
+       --cors
+      </b>
+     </td>
+     <td>
+      Enable CORS (common origin resource sharing)
+     </td>
+    </tr>
+   </table>
+   <p>
+    Although we are not making use of the
+        last option here, we may use this for
+        a web application later. The settings used above
+        will mean that the URL for the served
+        pages will begin with:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+localhost:8000</code></pre>
+   <p>
+    So, this means we can see "readTextFile.html" by
+        browsing to
+    <b>
+     localhost:8000/readTextFile.html
+    </b>
+    .
+   </p>
+   <p>
+    When you launch http-server, your terminal will look
+        like this to start:
+   </p>
+   <p>
+    Starting up http-server, serving ./
+   </p>
+   <p>
+    Available on:
+   </p>
+   <p>
+    http://localhost:8000
+   </p>
+   <p>
+    Hit CTRL-C to stop the server
+   </p>
+   <p>
+    Here is a screen shot showing what the
+        page looks like with the developer console open.
+        The developer console has been moved from its
+        default location on the right side to the
+        bottom of the window:
+   </p>
+   <p>
+    <img alt="screen shot showing the web page
+        with the developer console on the bottom of
+        the page" border="1" src="readText1.png"/>
+   </p>
+   <p>
+    As you can see, the message "init() called"
+        shows up in the console. You will also
+        see a warning that the file "favicon.icon" is
+        not found. You can ignore that warning. If
+        you reload the page by hitting the reload
+        button, that warning will go away. However, when
+        we make changes to "readTextFile.html" and hit CTRL-F5
+        to force a reload without caching the warning
+        will show up again (so just ignore it).
+   </p>
+   <p>
+    Let's add some HTML markup to the &lt;body&gt;
+        element:
+   </p>
+   <pre class="line-numbers" data-line="13-14"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function init() {
+            console.log('init() called');
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="5" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    The new lines are lines 13-14. Line 13
+        adds an &lt;input&gt; element of type "file" that
+        can be used to select a local file.
+        Note that this element has an
+    <b>
+     id="chooseFile"
+    </b>
+    attribute
+        that will be used later on to get
+        a reference to this element. Line 14 adds
+        a &lt;textarea&gt; element. This element will be used
+        to show the output from processing an input
+        file. Note that the &lt;textarea&gt; element has an
+    <b>
+     id="textarea"
+    </b>
+    attribute that will be used to get
+        a reference to this element.
+   </p>
+   <p>
+    Here is a screen shot of the page
+        at this point:
+   </p>
+   <p>
+    <img alt="screen shot showing the file input
+        element and textarea that have been added" border="1" src="readText2.png"/>
+   </p>
+   <p>
+    At this point, you can choose a local
+        file, but the application does not load the
+        file. Let's add some markup that will allow
+        triggering the loading process. At the same time,
+        let's add some JavaScript so that we can
+        begin to handle the input file:
+   </p>
+   <pre class="line-numbers" data-line="7-9,11-13,18-19"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function handleLoadFile() {
+            console.log('handleLoadFile() called');
+         }
+         function init() {
+            //console.log('init() called');
+            const loadFile = document.getElementById('loadFile');
+            loadFile.addEventListener('click',handleLoadFile);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;
+      &lt;button id="loadFile"&gt;Load File&lt;/button&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="5" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    The new lines are lines 7-9, lines 11-13
+        and lines 18-19. Let's talk about the changes
+        to the HTML markup on lines 18-19 first.
+        Line 18 has the &lt;br&gt; element removed so
+        that the element defined on line 19 will
+        be on the same line. Line 19 defines
+        a &lt;button&gt; element that will be used to
+        load the chosen file. Note that the &lt;button&gt;
+        element has an
+    <b>
+     id="loadFile"
+    </b>
+    attribute that will be
+        used to get a reference to this button.
+   </p>
+   <p>
+    Line 11 just comments out the printing of
+        'init() called" since we know that this is
+        working. Line 12 gets a reference to the
+        &lt;button&gt; element that we just defined on line
+        19. Line 13 sets things so that the
+    <b>
+     handleLoadFile()
+    </b>
+    function gets called when that button is
+        clicked.
+   </p>
+   <p>
+    Lines 7-9 define the current version of the
+    <b>
+     handleLoadFile()
+    </b>
+    function. At this point, all this function
+        does on line 8 is print 'handleLoadFile() called'
+        to the console.
+   </p>
+   <p>
+    The following screen shot shows the new version
+        of the application in the browser:
+   </p>
+   <p>
+    <img alt="screen shot showing a file has
+        been selected and the Load File button pressed" border="1" src="readText3.png"/>
+   </p>
+   <p>
+    Note that the file "courses.csv" was browsed for
+        and selected. Also, the
+    <b>
+     Load File
+    </b>
+    button was
+        pressed so the console shows 'handleLoadFile() called'. Next,
+        we want to put in code that will
+        allow us to start processing the input file:
+   </p>
+   <pre class="line-numbers" data-line="7-26,28-30"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function readUploadedFile(file) {
+            const fileReader = new FileReader();
+            let promise = new Promise((resolve, reject) =&gt; {
+               fileReader.onerror = () =&gt; {
+                  fileReader.abort();
+                  reject(new DOMException("Problem reading"));
+               };
+               fileReader.onload = () =&gt; {
+                  resolve(fileReader.result);
+               };
+               fileReader.readAsText(file);
+            });
+            return promise;
+         }
+        async function handleLoadFile() {
+            //console.log('handleLoadFile() called');
+            const chooseFile = document.getElementById('chooseFile');
+            const file = chooseFile.files[0];
+            let contents = await readUploadedFile(file);
+            processFile(contents);
+         }
+         function processFile(contents) {
+            console.log(contents);
+         }
+         function init() {
+            //console.log('init() called');
+            const loadFile = document.getElementById('loadFile');
+            loadFile.addEventListener('click',handleLoadFile);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;
+      &lt;button id="loadFile"&gt;Load File&lt;/button&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="5" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    The new lines are 7-20, lines 21-26 and
+        lines 28-30. Lines 7-20 define the
+    <b>
+     readUploadedFile()
+    </b>
+    function.
+        This file will take the file object from
+        the chosen filename and return the contents of
+        that file. The process of reading the file
+        is an asynchronous process. This means, we need
+        to make the program wait until the file
+        has been read in. Otherwise, the contents of
+        the read-in file will be undefined. Line 8
+        creates a
+    <b>
+     FileReader
+    </b>
+    object. Lines 9-18 define a
+    <b>
+     Promise
+    </b>
+    that will start the file reading process
+        on line 17. If there is an error
+        reading the file, lines 10-13 will handle that
+        error and stop the file reading process. If
+        there is no error and file is loaded,
+        lines 14-16 will resolve the promise with the
+        results of reading that file. Line 19 returns
+        the promise so that the calling function can
+        get the results.
+   </p>
+   <p>
+    Lines 21-26 show the changes to the
+    <b>
+     handleLoadFile()
+    </b>
+    function. Line 21 adds the
+    <b>
+     await
+    </b>
+    declaration to
+        the function header. This allows the use of
+    <b>
+     await
+    </b>
+    inside the function. The purpose of
+    <b>
+     await
+    </b>
+    is to halt the JavaScript processing until the
+        process that is being awaited completes. This allows
+        an asynchronous process to be handled in a
+        synchronous manner. With the addition of Promises, this
+        has made asynchronous processing a lot more straightforward.
+        Line 22 just comments out the printing to
+        the console that is no longer needed. Line
+        23 gets a reference to the &lt;input&gt; element
+        that is used to choose the file. Line
+        24 gets the file object from that &lt;input&gt;
+        element. Line 25 uses
+    <b>
+     await
+    </b>
+    to call the
+    <b>
+     readUploadedFile()
+    </b>
+    function. When this process completes, the contents
+        of the file is stored in the variable
+    <b>
+     contents
+    </b>
+    . Line 26 calls the
+    <b>
+     processFile()
+    </b>
+    function to
+        actually process the contents.
+   </p>
+   <p>
+    Lines 28-30 define the
+    <b>
+     processFile()
+    </b>
+    function. This is
+        the function that will do the actual processing
+        of the input file. This function needs to
+        be modified if you are reading in a
+        different kind of input file.
+   </p>
+   <p>
+    Let's modify
+    <b>
+     processFile()
+    </b>
+    to do some very simple
+        processing:
+   </p>
+   <pre class="line-numbers" data-line="29-36"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function readUploadedFile(file) {
+            const fileReader = new FileReader();
+            let promise = new Promise((resolve, reject) =&gt; {
+               fileReader.onerror = () =&gt; {
+                  fileReader.abort();
+                  reject(new DOMException("Problem reading"));
+               };
+               fileReader.onload = () =&gt; {
+                  resolve(fileReader.result);
+               };
+               fileReader.readAsText(file);
+            });
+            return promise;
+         }
+         async function handleLoadFile() {
+            //console.log('handleLoadFile() called');
+            const chooseFile = document.getElementById('chooseFile');
+            const file = chooseFile.files[0];
+            let contents = await readUploadedFile(file);
+            processFile(contents);
+         }
+         function processFile(contents) {
+            // This is the function that you modify
+            let data = contents.split("\n");
+            let out = "";
+            for (let i = 0; i &lt; data.length; i++) {
+               out += data[i] + "\n";
+            }
+            const textarea = document.getElementById('textarea');
+            textarea.value = out;
+         }
+         function init() {
+            //console.log('init() called');
+            const loadFile = document.getElementById('loadFile');
+            loadFile.addEventListener('click',handleLoadFile);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;
+      &lt;button id="loadFile"&gt;Load File&lt;/button&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="5" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    The new lines are lines 29-36. Line 29
+        just comments out a print statement that is
+        no longer needed. Line 30 splits the contents
+        into lines from the file and stores this
+        in an array called
+    <b>
+     data
+    </b>
+    . Lines 31-34 create
+        a string called
+    <b>
+     out
+    </b>
+    that has each line
+        from data separated by a newline character. Line
+        35 gets a reference to the &lt;textarea&gt; element
+        that we will use for output. Line 36
+        sets the value of the &lt;textarea&gt; element to
+        be
+    <b>
+     out
+    </b>
+    .
+   </p>
+   <p>
+    Here is a screen shot showing the result
+        of reading in the file "courses.csv":
+   </p>
+   <p>
+    <img alt="screen shot showing the result of
+        reading the file courses.csv" border="1" src="readText4.png"/>
+   </p>
+   <p>
+    Note that the textarea was set up with
+        only 5 rows, so you see the first
+        5 lines from the input file. You could
+        just select everything in the textarea and paste
+        that into an output file. But, let's make
+        things a little fancier by creating a link
+        to a file that can be downloaded:
+   </p>
+   <pre class="line-numbers" data-line="37-42,54-55"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function readUploadedFile(file) {
+            const fileReader = new FileReader();
+            let promise = new Promise((resolve, reject) =&gt; {
+               fileReader.onerror = () =&gt; {
+                  fileReader.abort();
+                  reject(new DOMException("Problem reading"));
+               };
+               fileReader.onload = () =&gt; {
+                  resolve(fileReader.result);
+               };
+               fileReader.readAsText(file);
+            });
+            return promise;
+         }
+         async function handleLoadFile() {
+            //console.log('handleLoadFile() called');
+            const chooseFile = document.getElementById('chooseFile');
+            const file = chooseFile.files[0];
+            let contents = await readUploadedFile(file);
+            processFile(contents);
+         }
+         function processFile(contents) {
+            // This is the function that you modify
+            let data = contents.split("\n");
+            let out = "";
+            for (let i = 0; i &lt; data.length; i++) {
+               out += data[i] + "\n";
+            }
+            const textarea = document.getElementById('textarea');
+            textarea.value = out;
+            let out_data = new Blob([out], {
+               type: 'text/plain'
+            });
+            let url = window.URL.createObjectURL(out_data);
+            const download = document.getElementById('download');
+            download.href = url;
+         }
+         function init() {
+            //console.log('init() called');
+            const loadFile = document.getElementById('loadFile');
+            loadFile.addEventListener('click',handleLoadFile);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;
+      &lt;button id="loadFile"&gt;Load File&lt;/button&gt;&lt;br&gt;
+      &lt;a id="download" href=""
+         download="out.txt"&gt;Download output&lt;/a&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="5" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    The new lines are lines 37-42 and lines
+        54-55. Let's look at the changes to the
+        HTML markup first on lines 54-55. Lines 54-55
+        define an &lt;a&gt; (anchor) element that will be
+        used to create a link to a downloadable
+        output file. Note that the
+    <b>
+     href
+    </b>
+    attribute is
+        currently blank but must be set before the
+        user clicks on this link. That will be
+        taken care of when we process the input
+        file. The
+    <b>
+     download
+    </b>
+    attribute is set to "out.txt".
+        This will be the default name for the
+        output file, but the user can override this
+        when saving the output file. The
+    <b>
+     id="download"
+    </b>
+    attribute
+        will be used to get a reference to
+        this &lt;a&gt; so that we can set the
+        value for the
+    <b>
+     href
+    </b>
+    attribute.
+   </p>
+   <p>
+    Lines 37-42 are the additional lines inside the
+    <b>
+     processFile()
+    </b>
+    function. Lines 37-39 create a
+    <b>
+     Blob
+    </b>
+    object
+        that is a plain text file. Line 40
+        uses the
+    <b>
+     window.URL.createObjectURL()
+    </b>
+    function to create a URL
+        for this new data object. Line 41 gets
+        a reference to the &lt;a&gt; element that is
+        a link to the file to be downloaded.
+        Line 42 sets the
+    <b>
+     href
+    </b>
+    attribute to the
+        newly created URL (that is constructed for the
+        Blob object).
+   </p>
+   <p>
+    When you reload the application in the browser,
+        you select the input file. After you load
+        that file, you can click on the
+    <b>
+     Download
+        output
+    </b>
+    link to save the output.
+   </p>
+   <h3>
+    Steps to make use of this application
+   </h3>
+   <ol>
+    <li>
+     Copy the last version of the code above to a suitable directory for the file you are processing.
+    </li>
+    <li>
+     You may want to modify the number of rows for the &lt;textarea&gt; element so that you can see more lines of output without scrolling.
+    </li>
+    <li>
+     Modify the
+     <b>
+      processFile()
+     </b>
+     function so that it processes the input file contents for the given situation.
+    </li>
+    <li>
+     When the output in the &lt;textarea&gt; is correct, download the output and save the file.
+    </li>
+   </ol>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/setup/javascript.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:28 GMT -->
+</html>

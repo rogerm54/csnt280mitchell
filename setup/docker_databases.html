@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/setup/docker_databases.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:29 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Docker containers with databases used with Node.js
+   </h2>
+   <p>
+    We have already used
+    <b>
+     docker-compose
+    </b>
+    to create and
+        connect two docker containers so that we can
+        use PHP and Apache with a PostgreSQL database.
+        If we decide to use Node.js with a
+        database, we can use just a single docker
+        container for that database. Let's look at how
+        we can set something like this up.
+   </p>
+   <h3>
+    Creating a Node.js package area
+   </h3>
+   <p>
+    We can start by creating a directory that
+        we can use to install all the
+    <b>
+     npm
+    </b>
+    packages needed for working with different databases. Eventually,
+        we want to be able to work with
+        a PostgreSQL database and also a MongoDB database.
+        We will do this by creating the following
+        directory
+    <b>
+     ~/Desktop/node_area
+    </b>
+    . Then, we will initialize this directory
+        so that we can install the various
+    <b>
+     npm
+    </b>
+    packages needed to interact with the databases. Run
+        the following commands:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ mkdir ~/Desktop/node_area
+$ cd ~/Desktop/node_area
+$ npm init -y</code></pre>
+   <p>
+    The last command will create a file "package.json"
+        that will be used to keep track of
+        the installed
+    <b>
+     npm
+    </b>
+    packages. Next, we can install
+        the following packages:
+    <b>
+     express
+    </b>
+    ,
+    <b>
+     pg
+    </b>
+    ,
+    <b>
+     mongo
+    </b>
+    and
+    <b>
+     cors
+    </b>
+    .
+        Within the ~/Desktop/node_area directory, run the following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area
+$ npm install express pg mongoose cors</code></pre>
+   <p>
+    The
+    <b>
+     express
+    </b>
+    package is used to help set
+        up the routes that are used for a
+        REST-like API between a backend database and a
+        web interface. The
+    <b>
+     pg
+    </b>
+    package is used to
+        connect to the PostgreSQL database from a Node.js
+        script. The
+    <b>
+     cors
+    </b>
+    package would be needed to
+        test and create a web interface for the
+        database. the
+    <b>
+     mongoose
+    </b>
+    package is used to connect
+        to a MongoDB database from a Node.js script.
+   </p>
+   <p>
+    It is important to understand that Node.js scripts
+        are JavaScript scripts that are meant to run
+        on the
+    <b>
+     server
+    </b>
+    side. So, we will be
+        creating such scripts to interact with the databases
+        from the command line. But, the
+    <b>
+     express
+    </b>
+    package
+        will make it so that we expose those
+        database connections to
+    <b>
+     client-side
+    </b>
+    JavaScript that is run
+        inside a browser. However, well before we work
+        on the web interface, the backend must be
+        developed and tested.
+   </p>
+   <p>
+    In a similar manner, if we are using
+        PHP/Apache for a web interface, we still need
+        to set up the backend database before we
+        deal with any of the web interface.
+   </p>
+   <h3>
+    Setting up a Docker container that contains PostgreSQL
+   </h3>
+   <p>
+    Let's setup a Docker container that will be
+        used to provide a PostgreSQL server. This will
+        require a fairly simple Dockerfile for the image.
+        Once the image is built, we will create
+        a container for that image that will allow
+        us to use PostgreSQL. Let's start with the
+        following commands:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area
+$ mkdir docker_pg
+$ cd docker_pg
+$ mkdir docs</code></pre>
+   <p>
+    Within the ~/Desktop/node_area/docker_pg folder, we want to create
+        a file called "Dockerfile":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_pg
+$ geany Dockerfile &amp;</code></pre>
+   <p>
+    Here are the contents of "Dockerfile":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+FROM postgres:14-alpine
+RUN apk add --no-cache nano
+WORKDIR /docs</code></pre>
+   <p>
+    In that same directory, create the script "create_image.sh":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_pg
+$ geany create_image.sh &amp;</code></pre>
+   <p>
+    Here is the contents of "create_image.sh":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+docker build -t pg_img .</code></pre>
+   <p>
+    Set the permissions on that file so that
+        it can be executed. Then run the script
+        to create the image called "pg_img":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_pg
+$ chmod u+x create_image.sh
+$ ./create_image.sh</code></pre>
+   <p>
+    This will create a docker image called
+    <b>
+     pg_img
+    </b>
+    that has that will run the PostgreSQL service
+        and also have the
+    <b>
+     nano
+    </b>
+    text editor available.
+        Next, let's create a script called "create_container.sh" that
+        will be used to create the Docker container
+        that will run the image we just created.
+        Here is the contents of "create_container.sh":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+docker container run -it --name=pg_cont --volume $(pwd)/docs:/docs \
+--env POSTGRES_PASSWORD='pgsql_man' pg_img</code></pre>
+   <p>
+    Use "chmod u+x create_container.sh" to make this executable
+        and then run this shell script. This will
+        create a docker container named
+    <b>
+     pg_cont
+    </b>
+    (using the
+    <b>
+     --name
+    </b>
+    switch) from the
+    <b>
+     pg_img
+    </b>
+    docker image. This
+    <b>
+     --volume
+    </b>
+    switch will create a persistent volume
+        that will map the
+    <b>
+     docs
+    </b>
+    directory in the
+        current directory to a directory
+    <b>
+     /docs
+    </b>
+    in the
+        container. The
+    <b>
+     -it
+    </b>
+    switch will run the container
+        as an interactive terminal. Without the
+    <b>
+     --env
+    </b>
+    (environment
+        variable switch), the container would start and exit
+        immediately. But, starting this way, we can hit
+        CTRL-C to stop the container, and the container
+        gets created in a way that will allow
+        the container to remain open. This is because
+        the maintainers at Docker Hub must have put
+        in something where failing to set a password
+        for the
+    <b>
+     postgres
+    </b>
+    user is not desirable.
+   </p>
+   <p>
+    We need to start up the container,
+    <b>
+     pg_cont
+    </b>
+    again, and then make some changes.
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker start pg_cont</code></pre>
+   <p>
+    when the container starts up, run the following
+        command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker exec -it pg_cont bash</code></pre>
+   <p>
+    This will start up an interactive root terminal
+        inside the
+    <b>
+     pg_cont
+    </b>
+    container. From there we can
+        do the following:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+# su postgres
+# psql postgres
+# create role csnt280man login createdb createrole superuser;
+# alter role csnt280man encrypted password 'pgsql_man';
+# create database csnt280db owner csnt280man;
+# exit
+# exit</code></pre>
+   <p>
+    The first line switches to the
+    <b>
+     postgres
+    </b>
+    user.
+        The second line starts up
+    <b>
+     psql
+    </b>
+    and connects
+        to the
+    <b>
+     postgres
+    </b>
+    database. The third line creates
+        the
+    <b>
+     csnt280man
+    </b>
+    super user. The fourth line sets
+        'pgsql_man' to be the password for the csnt280man
+        user. The fifth line creates a database called
+    <b>
+     csnt280db
+    </b>
+    and makes
+    <b>
+     csnt280man
+    </b>
+    the owner of that database.
+        The sixth line exits from the switch into
+        the postgres user. The last line causes an
+        exit from psql.
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+   </p>
+   <p>
+    The shell scripts, "create_image.sh" and "create_container.sh" are just
+        one line script that could have just been
+        typed at the console. But, by putting the
+        commands into those scripts, we can always view
+        those scripts to see how the docker image
+        and docker container have been created. Knowing how
+        the image and container have been created is
+        important if you have not run the container
+        for awhile and you need to remember how
+        the container and the image the container is
+        based upon were originally created.
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+   </p>
+   <p>
+    To make the PostgreSQL service more secure, we
+        want to make a modification to the file
+        /var/lib/postgresql/data/pg_hba.conf.
+   </p>
+   <p>
+    Here are the steps to follow. Before executing
+        these steps, make sure that the
+    <b>
+     pg_cont
+    </b>
+    docker
+        container is running. If it is not running,
+        enter "docker start pg_cont" at the command line
+        to start it up.
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_pg
+$ docker exec -it pg_cont bash
+# nano /var/lib/postgresql/data/pg_hba.conf</code></pre>
+   <p>
+    Once you are inside
+    <b>
+     nano
+    </b>
+    type ALT-G, followed
+        by 84 (to go to line 84). That
+        line currently looks like this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+local     all     all     trust</code></pre>
+   <p>
+    Comment that line out and replace it with
+        this line:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+local     all     all     md5</code></pre>
+   <p>
+    That is, you are replace "trust" with "md5".
+        In
+    <b>
+     nano
+    </b>
+    type CTRL-O (output) and hit an
+        Enter. Then, type CTRL-X (to exit nano). This
+        means that a user will have to enter
+        the password to use a PostgreSQL database. To
+        make this take effect, you need to exit
+        from the Docker container, stop the container and
+        start the container again. If you did this
+        correctly, you will need to use the 'pgsql_man'
+        password to get into the csnt280db database. Here
+        is a screen shot of an interactive session
+        to show this.
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker stop pg_cont
+pg_cont
+vern@vern5820k:~/Desktop/node_area/docker_pg$ docker start pg_cont
+pg_cont
+vern@vern5820k:~/Desktop/node_area/docker_pg$ docker exec -it pg_cont bash
+root@dc7a8bfc4654:/docs# psql -U csnt280man -W csnt280db
+Password: 
+psql: fe_sendauth: no password supplied
+root@dc7a8bfc4654:/docs# psql -U csnt280man -W csnt280db
+Password: 
+psql (11.5 (Debian 11.5-1.pgdg90+1))
+Type "help" for help.
+
+csnt280db=#</code></pre>
+   <p>
+    The first time that csnt280man was prompted to
+        enter a password, I hit the &lt;enter&gt; key
+        without a password so I to the no
+        password supplied message. The second time, I supplied
+        the correct password so that I got into
+        the csnt280db database as shown. Note that because
+        csnt280man is a superuser, the prompt has a
+        # at the end.
+   </p>
+   <p>
+    Now that we are inside the csnt280db database,
+        let's create the regular user
+    <b>
+     bob
+    </b>
+    and give
+        bob a database named 'bobdb':
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+csnt280db=# create role bob login;
+CREATE ROLE
+csnt280db=# alter role bob encrypted password 'somepass';
+ALTER ROLE
+csnt280db=# grant bob to csnt280man;
+GRANT ROLE
+csnt280db=# create database bobdb owner bob;
+CREATE DATABASE</code></pre>
+   <p>
+    To verify that this worked, exit the csnt280db
+        database and login to the bobdb database as
+        bob:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+csnt280db=# \q
+root@dc7a8bfc4654:/docs# psql -U bob -W bobdb
+Password: 
+psql (11.5 (Debian 11.5-1.pgdg90+1))
+Type "help" for help.
+
+bobdb=&gt;</code></pre>
+   <p>
+    Since 'bob' is a regular user, the prompt
+        ends with a
+    <b>
+     &gt;
+    </b>
+    (instead of a #
+        like it does for csnt280man). We will make
+        use of this container later. Let's create a
+        container that is used to provide MongoDB databases.
+   </p>
+   <p>
+    <span id="docker_mongo">
+    </span>
+   </p>
+   <h3>
+    A Docker container for MongoDB
+   </h3>
+   <p>
+    We can start by going to a terminal
+        and creating a directory to hold files for
+        setting up a Docker container for MongoDB:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker stop pg_cont
+pg_cont
+$ cd ~/Desktop/node_area/
+$ mkdir docker_mongo
+$ cd docker_mongo/
+$ geany Dockerfile &amp;</code></pre>
+   <p>
+    First, we stop the pg_cont container. Then, change
+        into the directory that it initialized for Node.js
+        and make a directory called "docker_mongo". Change into
+        that directory and use Geany to create Dockerfile
+        with these contents:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+FROM mongo:4.2-bionic
+WORKDIR /docs</code></pre>
+   <p>
+    Create a subdirectory called "docs" and make a
+        script that can be used to create the
+        MondoDB image:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ mkdir ~/Desktop/node_area/docker_mongo/docs
+$ cd ~/Desktop/node_area/docker_mongo
+$ geany create_image.sh</code></pre>
+   <p>
+    Here is the contents of "create_image.sh":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+docker build -t mongo_img .</code></pre>
+   <p>
+    Make "create_image.sh" executable and run it to create
+        the
+    <b>
+     mongo_img
+    </b>
+    image:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ chmod u+x create_image.sh
+$ ./create_image.sh</code></pre>
+   <p>
+    To make sure the container runs properly on
+        the Apporto virtual desktops, use a name like
+        this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+mongo_cont_jd</code></pre>
+   <p>
+    for your container. This assumes that your initials
+        are
+    <b>
+     jd
+    </b>
+    (for Jane Doe). So, substitute in
+        your own initials to avoid a namespace collision.
+   </p>
+   <p>
+    So, create the "create_container.sh" file with these contents:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+docker container run -d --name=mongo_cont_jd -v $(pwd)/docs:/docs mongo_img</code></pre>
+   <p>
+    Make "create_container.sh" executable and run it to create
+        the
+    <b>
+     mongo_cont
+    </b>
+    container:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ chmod u+x create_container.sh
+$ ./create_container.sh</code></pre>
+   <p>
+    Stop the
+    <b>
+     mongo_cont_jd
+    </b>
+    container. Then, restart that container
+        and get to a root prompt inside the
+    <b>
+     mongo_cont
+    </b>
+    container:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker stop mongo_cont_jd
+$ docker start mongo_cont_jd
+$ docker exec -it mongo_cont bash</code></pre>
+   <p>
+    Once inside the
+    <b>
+     mongo_cont
+    </b>
+    container, run
+    <b>
+     mongo
+    </b>
+    and
+        create a database called "bobdb" and give this
+        database some records:
+   </p>
+   <p>
+    messages show up here
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+root@2b29a1a6c824:/docs# mongo
+MongoDB shell version v4.2.0
+connecting to: mongodb://127.0.0.1:27017/?compressors=disabled&amp;gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("d28e2629-75f5-4d57-87ac-9f91511ad215") }
+MongoDB server version: 4.2.0
+Welcome to the MongoDB shell.
+--- snip ---
+--- end snip ---
+&gt; show dbs
+admin   0.000GB
+config 0.000GB
+local   0.000GB
+&gt; use bobdb
+switched to db bobdb
+&gt; db.students.save({first_name: "Jane", last_name: "Doe"});
+WriteResult({ "nInserted" : 1 })
+&gt; db.students.save({first_name: "John", last_name: "Doe"});
+WriteResult({ "nInserted" : 1 })
+&gt; db.students.save({first_name: "Bill", last_name: "Gates"});
+WriteResult({ "nInserted" : 1 })</code></pre>
+   <p>
+    After starting up mongo by typing "mongo" at
+        the prompt, the MongoDB server starts up. You
+        will see the MongoDB version and some messages.
+        When you get a prompt, type the "show
+        dbs" command to list all the databases. Then
+        type the "use bobdb" command to create a
+        database named
+    <b>
+     bobdb
+    </b>
+    Like other NoSQL databases, MongoDB
+        saves everything as JSON objects. This line:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+db.students.save({first_name: "Jane", last_name: "Doe"});</code></pre>
+   <p>
+    will create a
+    <b>
+     collection
+    </b>
+    called "students" and store
+        the JSON object with the first_name and last_name
+        key: value pairs. As can be seen, there
+        will now be three JSON objects stored in
+        the "students" collection. A collection in MongoDB is
+        similar to a table in a relational database.
+   </p>
+   <p>
+    To query that database from within the mongo
+        prompt, you do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.students.find({})
+{ "_id" : ObjectId("5d99634427bba89d1b4bc224"), "first_name" : "Jane", "last_name" : "Doe" }
+{ "_id" : ObjectId("5d99634b27bba89d1b4bc225"), "first_name" : "John", "last_name" : "Doe" }
+{ "_id" : ObjectId("5d99635927bba89d1b4bc226"), "first_name" : "Bill", "last_name" : "Gates" }</code></pre>
+   <p>
+    By leaving the curly braces ({ }) empty
+        on the first line, all the objects in
+        the students collection are returned.
+   </p>
+   <p>
+   </p>
+   <p>
+   </p>
+   <p>
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/setup/docker_databases.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:29 GMT -->
+</html>

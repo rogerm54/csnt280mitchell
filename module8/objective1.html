@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module8/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:47 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module8.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 8.1 - Setting up a database backend for a web application
+   </h2>
+   <p>
+    Throughout the course, you have seen how to
+        set up PostgreSQL databases. In Project 1 and
+        Project 2, you used a PostgreSQL database as
+        the back end for a simple PHP/Apache web
+        application. So, for this module, we are going
+        to use a MongoDB database as our back
+        end for a web application. In addition, we
+        are going to use Node.js, and Node.js modules
+        along with JavaScript to create the web application,
+        instead of using PHP/Apache.
+   </p>
+   <h3>
+    A simple MongoDB database
+   </h3>
+   <p>
+    We are going to make a very simple
+        MongoDB database so that it is easier to
+        understand all the parts that go into a
+        complete web application. This database will consist of
+        a single collection called
+    <b>
+     cars
+    </b>
+    . If you have
+        not already created and setup a Docker container
+        that provides MongoDB, go back to this
+    <a href="../setup/docker_databases.html#docker_mongo" target="_blank">
+     page
+    </a>
+    and set that up.
+   </p>
+   <p>
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+    <p>
+     Here are the steps that I followed on
+        my Apporto Virtual Desktop to create my Docker
+        container that provides MongoDB:
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/
+$ mkdir -p ~/Desktop/node_area/docker_mongo/docs/cars
+$ cd ~/Desktop/node_area/docker_mongo</code></pre>
+    <p>
+     I used the following Docker file, located in
+     <b>
+      ~/Desktop/node_area/docker_mongo
+     </b>
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+FROM mongo:4.2-bionic
+WORKDIR /docs</code></pre>
+    <p>
+     The image and container were built using the
+        following commands:
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_mongo
+$ docker build -t mongo_img
+$ docker container run -d --name-mongo_cont -v $(pwd)/docs:/docs mongo_img
+$ docker stop mongo_cont</code></pre>
+    <p>
+     Open up two terminals that are in the
+     <b>
+      ~/Desktop/node_area/docker_mongo/docs/cars
+     </b>
+     directory. In one of the terminals, go
+        into the Docker container using the following command:
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+docker exec -it mongo_cont bash</code></pre>
+    <p>
+     Then, switch to the terminal that is in
+        the host and create the file "init.js" as
+        follows:
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ geany init.js &amp;</code></pre>
+    <p>
+     This is the contents for "init.js":
+    </p>
+    <pre class="line-numbers" data-line=""><code class="language-markup">
+conn = new Mongo()
+db = conn.getDB("cars_db")
+db.cars.drop()
+db.cars.insert({ make: "Toyota", model: "Camry", price: 26123.99})
+db.cars.insert({ make: "Honda", model: "Accord", price: 25137.99})
+db.cars.insert({ make: "Chevrolet", model: "Camaro", price: 36423.99})</code></pre>
+    <p>
+     Line 1 connects to the Mongo server. Line
+        2 uses the database named
+     <b>
+      cars
+     </b>
+     . If
+     <b>
+      cars_db
+     </b>
+     does not exist, that database is created at
+        this point. Line 3 drops the "cars" collection
+        from the cars_db database. Lines 4-5 insert some
+        documents into the "cars" collection.
+    </p>
+    <p>
+     To run "init.js", go to the terminal that
+        is inside the Docker container:
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+# mongo
+&gt; load("init.js")
+true</code></pre>
+    <p>
+     To verify that the documents have been inserted,
+        do a
+     <b>
+      find()
+     </b>
+     :
+    </p>
+    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; use cars_db
+&gt; db.cars.find()
+{ "_id" : ObjectId("5dbdfbaf1cb39e39eb2700a0"), "make" : "Toyota", "model" : "Camry", "price" : 26123.99 }
+{ "_id" : ObjectId("5dbdfbaf1cb39e39eb2700a1"), "make" : "Honda", "model" : "Accord", "price" : 25137.99 }
+{ "_id" : ObjectId("5dbdfbaf1cb39e39eb2700a2"), "make" : "Chevrolet", "model" : "Camaro", "price" : 36423.99 }</code></pre>
+    <p>
+     The "cars" database has been set up.
+    </p>
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module8.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module8/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:47 GMT -->
+</html>

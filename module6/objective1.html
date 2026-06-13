@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module6/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:44 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module6.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 6.1 - Creating tools that can automate the running of SQL scripts on a relational database
+   </h2>
+   <p>
+    If you need to manage several databases, it
+        might be useful to be able to manage
+        them without having to use a command line
+        tool like
+    <b>
+     psql
+    </b>
+    . A GUI program that could
+        be used to connect to a PostgreSQL database
+        and run SQL scripts could be useful because
+        you would not have to remember the different
+        psql commands. You can also create a program
+        that would make it easy for someone to
+        use, even if they did not know SQL
+        very well.
+   </p>
+   <h3>
+    Using python3-psycopg2 from a command line program
+   </h3>
+   <p>
+    Before we write a GUI program, let's write
+        a command-line program just to get used to
+        some of the things that can be done
+        making use of the
+    <b>
+     python3-psycopg2
+    </b>
+    module. Here is
+        a program that creates a database called test_db
+        that will be owned by the 'bob' user:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-python">
+"""
+create_db.py A program that demonstrates how to create a 
+database using the psycopg2 module.
+"""
+import psycopg2
+conn_string = "host='localhost' dbname='csnt280db' "
+conn_string += " user='csnt280man' password='pgsql_man'"
+conn = psycopg2.connect(conn_string)
+conn.autocommit = True
+cursor = conn.cursor()
+sql = "drop database if exists test_db;"
+cursor.execute(sql)
+sql = "create database test_db owner bob;"
+cursor.execute(sql)
+conn.close()</code></pre>
+   <p>
+    Set up so that you have three terminals
+        open. Two terminals should be inside the Docker
+        container that has Python and psycopg2 installed, and
+        the other terminal should be in a directory
+        inside of the &lt;main_docker&gt;/docs directory. That third terminal
+        is where you create the "create_db.py" file. After
+        creating that file, use one of terminals inside
+        Docker to change to the location of your
+        "create_db.py" file. Run the script. In the other
+        terminal inside the Docker container, use
+    <b>
+     psql
+    </b>
+    to
+        verify that the "test_db" database exists and can
+        be logged into by 'bob'.
+   </p>
+   <p>
+    The program is mostly straightforward. Line 5 imports
+        the
+    <b>
+     psycopg2
+    </b>
+    module. Lines 6 and 7 are
+        used to create the connection string that psycopg2
+        will use to connect to the PostgreSQL database.
+        That string is broken over two lines to
+        keep the length of the instructions relatively short.
+        Line 8 attempts to get the connection and
+        store the connection in
+    <b>
+     conn
+    </b>
+    . Although you could
+        try to catch the exception that could be
+        thrown, for a simple program like this, it
+        is better for the exception to be thrown
+        so that the program ends and you can
+        see the error.
+   </p>
+   <p>
+    Line 9 sets the connection's
+    <b>
+     autocommit
+    </b>
+    property to
+        True. This is required to drop or create
+        a database. If you don't have this line,
+        trying to execute the query on line 12
+        and/or line 14 will result in an error
+        stating that those kinds of commands are not
+        permitted in a transaction. Line 11 sets up
+        a drop query that will drop the "test_db"
+        database if it exists. Line 12 runs that
+        query. So, if the "test_db" database exists, it
+        will be dropped. Otherwise, the drop command is
+        ignored. Line 13 sets up a create query
+        that will be used to create the "test_db"
+        database. Line 14 executes the create query and
+        the "test_db" database should be created. Line 15
+        just closes the connection to the PostgreSQL server.
+   </p>
+   <p>
+    Using one of the terminals inside the Docker
+        container, verify that you can log into the
+        "test_db" database as 'bob'.
+   </p>
+   <h4>
+    Creating SQL scripts for "test_db"
+   </h4>
+   <p>
+    Here is a the script "init.sql" that we
+        can use to initialize the tables and a
+        view for "test_db":
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-python">
+-- init.sql for the test_db database
+drop table if exists students cascade;
+drop table if exists sections cascade;
+drop table if exists students_sections cascade;
+
+create table students(
+   id serial,
+   first_name text,
+   last_name text,
+   primary key (id)
+);
+create table sections(
+   id serial,
+   course_alpha text,
+   credits integer,
+   primary key (id)
+);
+create table students_sections(
+   id serial,
+   student_id integer references students(id),
+   section_id integer references sections(id),
+   primary key (id)
+);
+create view students_view as
+   select students.id as st_id, students.first_name,
+   students.last_name, sections.id as sec_id,
+   sections.course_alpha, sections.credits
+   from students join students_sections
+   on students.id=students_sections.student_id 
+   join sections on 
+   students_sections.section_id=sections.id;</code></pre>
+   <p>
+    Here is a script, "add_initial_data.sql" that will be
+        used to add initial data to "test_db" after
+        the "init.sql" script has been run.
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-python">
+-- add_initial_data.sql to add initial data to test_db
+insert into students (id, first_name, last_name) values
+   (1, 'Jane','Doe');
+insert into students (id, first_name, last_name) values
+   (2, 'John','Doe');
+insert into students (id, first_name, last_name) values
+   (3,'Bill','Gates');
+insert into sections (id, course_alpha, credits) values
+   (1, 'CSNT110', 3);
+insert into sections (id, course_alpha, credits) values
+   (2, 'CSNT132', 4);
+insert into sections (id, course_alpha, credits) values
+   (3, 'CSNT140', 4);
+insert into sections (id, course_alpha, credits) values
+   (4, 'CSNT280', 3);
+insert into students_sections (student_id, section_id)
+   values (1, 1);
+insert into students_sections (student_id, section_id)
+   values (1, 2);
+insert into students_sections (student_id, section_id)
+   values (2, 1);
+insert into students_sections (student_id, section_id)
+   values (2, 2);
+insert into students_sections (student_id, section_id)
+   values (3, 3);
+insert into students_sections (student_id, section_id)
+   values (3, 4);</code></pre>
+   <p>
+    Here is a console-based Python program, "initialize_db.py" that
+        will be used to call both of those
+        scripts:
+   </p>
+   <pre class="line-numbers" data-line="" data-start=" initialize_db.py"><code class="language-python">
+# initialize_db.py
+import psycopg2
+conn_string = "host='localhost' dbname='test_db' "
+conn_string += " user='bob' password='somepass'"
+conn = psycopg2.connect(conn_string)
+cursor = conn.cursor()
+infile = open("init.sql","r")
+sql = infile.read()
+infile.close()
+cursor.execute(sql)
+sql = open("add_initial_data.sql").read()
+cursor.execute(sql)
+conn.commit()
+conn.close()</code></pre>
+   <p>
+    Lines 3-5 are used to get a connection
+        to the database "test_db" using the 'bob' user.
+        Line 6 obtains a cursor to allow execution
+        of SQL commands. Line 7 opens the "init.sql"
+        file. Line 8 reads the entire contents of
+        that SQL script and save it as the
+    <b>
+     sql
+    </b>
+    variable. Line 10 executes the SQL commands
+        from "init.sql". Line 11 gets the contents from
+        "add_initial_data.sql" and stores the contents inside the
+    <b>
+     sql
+    </b>
+    variable. Line 12 causes those statements to run.
+        Line 13 commits the changes to the database.
+        If you failed to make this commit, the
+        database tables would not be created and the
+        data would not have been inserted into those
+        tables. After running this Python script, the following
+        select query was run inside the
+    <b>
+     test_db:
+    </b>
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+test_db=&gt; select * from students_view;
+st_id | first_name | last_name | sec_id | course_alpha | credits 
+-------+------------+-----------+--------+--------------+---------
+     1 | Jane       | Doe       |      1 | CSNT110      |       3
+     1 | Jane       | Doe       |      2 | CSNT132      |       4
+     2 | John       | Doe       |      1 | CSNT110      |       3
+     2 | John       | Doe       |      2 | CSNT132      |       4
+     3 | Bill       | Gates     |      3 | CSNT140      |       4
+     3 | Bill       | Gates     |      4 | CSNT280      |       3
+(6 rows)</code></pre>
+   <h3>
+    Using tkinter to create a GUI program
+   </h3>
+   <p>
+    Now that we know how to run SQL
+        scripts from a Python console program, let's look
+        at writing a GUI program that makes use
+        of the
+    <b>
+     tkinter
+    </b>
+    module. Here is the program,
+        "query_db.py":
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    This will just put up a very simple
+        GUI application that consists of a window that
+        is 700 pixels wide by 600 pixels in
+        height. The title bar will show the text
+        "Database Query Tool". To close the application, you
+        click on the close button.
+   </p>
+   <p>
+    Let's add a menu to the application so
+        that we can quit the application by selecting
+        a menu item. Here is the new code:
+   </p>
+   <pre class="line-numbers" data-line="10,14-19"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',command=self.destroy)
+      self.config(menu=menubar)
+      
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    Line 10 calls the
+    <b>
+     initMenu()
+    </b>
+    function that is
+        defined on lines 14-19. Line 15 creates a
+        menu bar. Lines 16 and 17 create the
+        File menu so that
+    <b>
+     fileOptions
+    </b>
+    will hold the
+        menu items for the File menu. Line 18
+        adds the
+    <b>
+     Quit
+    </b>
+    menu item to the File
+        menu and sets the command to call the
+    <b>
+     self.destroy()
+    </b>
+    function. Finally, line 19 sets the menubar
+        to be used as the main window's menu.
+        The self.destroy() function will cause the application to
+        quit.
+   </p>
+   <p>
+    If you run the application now, you will
+        see that you can click on the Quit
+        menu item on the File menu to quit
+        the application. contain
+    <b>
+     self
+    </b>
+    as one of the
+        parameters. When you are creating a GUI program
+        that handles more than one process, it is
+        useful to make use of tabbed windows. This
+        allows you to put more of a user
+        interface on each tab. For our application, we
+        want to be able to handle two processes:
+        1) Set the database to query and 2)
+        Run select queries on the chosen database. Therefore,
+        we will make a tab for each process.
+        Here is the modified code that starts to
+        do that:
+   </p>
+   <pre class="line-numbers" data-line="6,13-18"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The new lines are line 6 and lines
+        13-18. Line 6 imports the
+    <b>
+     tkinter.ttk
+    </b>
+    module as
+    <b>
+     ttk
+    </b>
+    . Lines 13-18 set up the tabbed panes.
+        Line 13 uses a
+    <b>
+     ttk.Notebook
+    </b>
+    to set up
+        the tabs. Line 14 creates a
+    <b>
+     ttk.Frame
+    </b>
+    to
+        use for the first tab and stores a
+        reference to this tab as
+    <b>
+     self.tab1
+    </b>
+    . Line 15
+        does the same thing for the second tab,
+        storing a reference to the second tab as
+    <b>
+     self.tab2
+    </b>
+    . Line 16 gives the title, "Set Database",
+        to the first tab, and line 17 gives
+        the title, "Query Database", to the second tab.
+        Finally, line 18 calls the
+    <b>
+     pack()
+    </b>
+    function to
+        make the Frames on each tab expand to
+        fill the size of the main application window.
+        Here is a screen shot of what the
+        application looks like at this point.
+   </p>
+   <p>
+    <img alt="screen shot of application with two
+        tabs" src="images/tabs_created.png"/>
+   </p>
+   <p>
+    At this point, the tabs are blank because
+        we haven't added any widgets to the tabs.
+        Let's start on the first tab.
+   </p>
+   <pre class="line-numbers" data-line="20,22-54"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      
+  def setTab1(self):
+      frame = ttk.Frame(self.tab1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=5)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=5)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=5)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=5)
+      self.user_entry = ttk.Entry(frame4)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The new lines are line 20 and lines
+        22-54.
+   </p>
+   <p>
+   </p>
+   <p>
+    Here is a screen shot of the application
+        at this point.
+   </p>
+   <p>
+    <img alt="screen shot showing the added text
+        fields" src="images/query_db2.png"/>
+   </p>
+   <p>
+    Next, we can add in a button that
+        will be used to connect to the datase,
+        and a framed text area where we can
+        display the tables and views in the database
+        if the connection is successful. here is the
+        new version of the code:
+   </p>
+   <pre class="line-numbers" data-line="23-24,32,39,46,53,57-66,68-73"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame4)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK")
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The modified lines are line 23-24, line 32,
+        line 39 and line 53. The new lines
+        are lines 57-60, lines 62-66 and lines 68-73.
+        Here is a screen shot of the application
+        at this point.
+   </p>
+   <p>
+    <img alt="application with button and area to
+        display connected database tables and views" src="images/query_db3.png"/>
+   </p>
+   <p>
+    Now, let's start to set up the second
+        tab. Here is the new version of the
+        code:
+   </p>
+   <pre class="line-numbers" data-line="21,76-99"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      self.setTab2()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame4)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK")
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+         
+   def setTab2(self):
+      frame = ttk.Frame(self.tab2)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="SQL query to run",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      query_frame = ttk.Frame(self.tab2, relief=tk.RAISED,
+         borderwidth=2)
+      query_frame.pack(fill=tk.X,expand=False)
+      self.query_area = tk.Text(query_frame,height=5)
+      self.query_area.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+      ok_frame = ttk.Frame(self.tab2)
+      ok_frame.pack(fill=tk.X)
+      run_button = tk.Button(ok_frame, text="Run")
+      run_button.pack(side=tk.RIGHT, padx=25, pady=5)
+      
+      table_frame = ttk.Frame(self.tab2)
+      table_frame.pack(fill=tk.BOTH, expand=True)
+      self.tree = ttk.Treeview(table_frame)
+      self.tree.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5,
+         expand=True)
+      self.tree["show"] = "headings"
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The new lines are line 21 and lines
+        76-99. Here is a screen shot of the
+        application at this point.
+   </p>
+   <p>
+    <img alt="second tab of application created" src="images/query_db4.png"/>
+   </p>
+   <p>
+    Let's start to make it so that we
+        can connect to a database. Here is the
+        new version of the code:
+   </p>
+   <pre class="line-numbers" data-line="60-61,102-104"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      self.setTab2()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame4)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK", 
+         command=self.setDB)
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+         
+   def setTab2(self):
+      frame = ttk.Frame(self.tab2)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="SQL query to run",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      query_frame = ttk.Frame(self.tab2, relief=tk.RAISED,
+         borderwidth=2)
+      query_frame.pack(fill=tk.X,expand=False)
+      self.query_area = tk.Text(query_frame,height=5)
+      self.query_area.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+      ok_frame = ttk.Frame(self.tab2)
+      ok_frame.pack(fill=tk.X)
+      run_button = tk.Button(ok_frame, text="Run")
+      run_button.pack(side=tk.RIGHT, padx=25, pady=5)
+      
+      table_frame = ttk.Frame(self.tab2)
+      table_frame.pack(fill=tk.BOTH, expand=True)
+      self.tree = ttk.Treeview(table_frame)
+      self.tree.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5,
+         expand=True)
+      self.tree["show"] = "headings"
+      
+   def setDB(self):
+      host = self.host_entry.get()
+      print("host: " + host)
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    This is just to test to see if
+        the
+    <b>
+     Run
+    </b>
+    button is connected to calling the
+    <b>
+     setDB()
+    </b>
+    function. Run the program and check to
+        see in the console that you can get
+        the value placed in the host text input
+        and display it in the console. Next, make
+        the following changes in the code:
+   </p>
+   <pre class="line-numbers" data-line="55-56,103-110"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      self.setTab2()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.pass_entry = ttk.Entry(frame4, show="*")
+      self.pass_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK", 
+         command=self.setDB)
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+         
+   def setTab2(self):
+      frame = ttk.Frame(self.tab2)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="SQL query to run",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      query_frame = ttk.Frame(self.tab2, relief=tk.RAISED,
+         borderwidth=2)
+      query_frame.pack(fill=tk.X,expand=False)
+      self.query_area = tk.Text(query_frame,height=5)
+      self.query_area.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+      ok_frame = ttk.Frame(self.tab2)
+      ok_frame.pack(fill=tk.X)
+      run_button = tk.Button(ok_frame, text="Run")
+      run_button.pack(side=tk.RIGHT, padx=25, pady=5)
+      
+      table_frame = ttk.Frame(self.tab2)
+      table_frame.pack(fill=tk.BOTH, expand=True)
+      self.tree = ttk.Treeview(table_frame)
+      self.tree.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5,
+         expand=True)
+      self.tree["show"] = "headings"
+      
+   def setDB(self):
+     host = self.host_entry.get().strip()
+      dbname = self.db_entry.get().strip()
+      user = self.user_entry.get().strip()
+      password = self.pass_entry.get().strip()
+      self.conn_string = "host='" + host + "' dbname='"
+      self.conn_string += dbname + "' user='" + user
+      self.conn_string += "' password='" + password + "'"
+      self.textarea.insert(tk.END,self.conn_string)
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The new lines are lines 55-56 and lines
+        103-110. Lines 55-56 make sure that when the
+        password is entered, the text is replaced with
+        asterisks. Line 103-110 will gather the input from
+        the text input boxes and create the connection
+        string for connecting to the database.
+   </p>
+   <p>
+    Here is the next version of the code:
+   </p>
+   <pre class="line-numbers" data-line="7,59-62,116-132"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+import psycopg2
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      self.setTab2()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.pass_entry = ttk.Entry(frame4, show="*")
+      self.pass_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+     self.host_entry.insert(tk.END,"localhost")
+      self.db_entry.insert(tk.END,"test_db")
+      self.user_entry.insert(tk.END,"bob")
+      self.pass_entry.insert(tk.END,"somepass")
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK", 
+         command=self.setDB)
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+         
+   def setTab2(self):
+      frame = ttk.Frame(self.tab2)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="SQL query to run",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      query_frame = ttk.Frame(self.tab2, relief=tk.RAISED,
+         borderwidth=2)
+      query_frame.pack(fill=tk.X,expand=False)
+      self.query_area = tk.Text(query_frame,height=5)
+      self.query_area.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+      ok_frame = ttk.Frame(self.tab2)
+      ok_frame.pack(fill=tk.X)
+      run_button = tk.Button(ok_frame, text="Run")
+      run_button.pack(side=tk.RIGHT, padx=25, pady=5)
+      
+      table_frame = ttk.Frame(self.tab2)
+      table_frame.pack(fill=tk.BOTH, expand=True)
+      self.tree = ttk.Treeview(table_frame)
+      self.tree.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5,
+         expand=True)
+      self.tree["show"] = "headings"
+      
+   def setDB(self):
+      host = self.host_entry.get().strip()
+      dbname = self.db_entry.get().strip()
+      user = self.user_entry.get().strip()
+      password = self.pass_entry.get().strip()
+      self.conn_string = "host='" + host + "' dbname='"
+      self.conn_string += dbname + "' user='" + user
+      self.conn_string += "' password='" + password + "'"
+     self.textarea.delete("1.0","end")
+      try:
+         self.conn = psycopg2.connect(self.conn_string)
+         self.cursor = self.conn.cursor()
+         sql = "select table_name,table_type from "
+         sql += " information_schema.tables where " 
+         sql += " table_schema='public'"
+         self.cursor.execute(sql)
+         results = self.cursor.fetchall()
+         print(results)
+         res_txt = "tables and views:\n"
+         for result in results:
+            res_txt += result[0] +", " 
+            res_txt += result[1].replace('BASE ','') + "\n"
+         self.textarea.insert(tk.END,res_txt)
+      except psycopg2.DatabaseError:
+         pass
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The new lines are line 7, lines 59-62
+        and lines 116-132. Line 7 imports the
+    <b>
+     psycopg2
+    </b>
+    module. Lines 59-62 put in default values for
+        the database connection parameters. Lines 116-132 carry out
+        the select query to get the tables and
+        views for the database. The results of this
+        query are displayed in the textarea below. Here
+        is a screen shot showing a connection was
+        made to the
+    <b>
+     test_db
+    </b>
+    database.
+   </p>
+   <p>
+    <img alt="connected to the test_db database" src="images/query_db7.png"/>
+   </p>
+   <p>
+    Now that we can connect to a database,
+        we can work on the second tab where
+        we perform select queries. Here is the new
+        version of the code:
+   </p>
+   <pre class="line-numbers" data-line="98-99,132-133,135-141"><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+import psycopg2
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      self.setTab2()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.pass_entry = ttk.Entry(frame4, show="*")
+      self.pass_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      self.host_entry.insert(tk.END,"localhost")
+      self.db_entry.insert(tk.END,"test_db")
+      self.user_entry.insert(tk.END,"bob")
+      self.pass_entry.insert(tk.END,"somepass")
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK", 
+         command=self.setDB)
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+         
+   def setTab2(self):
+      frame = ttk.Frame(self.tab2)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="SQL query to run",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      query_frame = ttk.Frame(self.tab2, relief=tk.RAISED,
+         borderwidth=2)
+      query_frame.pack(fill=tk.X,expand=False)
+      self.query_area = tk.Text(query_frame,height=5)
+      self.query_area.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+      ok_frame = ttk.Frame(self.tab2)
+      ok_frame.pack(fill=tk.X)
+      run_button = tk.Button(ok_frame, text="Run", 
+         command=self.runQuery)
+      run_button.pack(side=tk.RIGHT, padx=25, pady=5)
+      
+      table_frame = ttk.Frame(self.tab2)
+      table_frame.pack(fill=tk.BOTH, expand=True)
+      self.tree = ttk.Treeview(table_frame)
+      self.tree.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5,
+         expand=True)
+      self.tree["show"] = "headings"
+      
+   def setDB(self):
+      host = self.host_entry.get().strip()
+      dbname = self.db_entry.get().strip()
+      user = self.user_entry.get().strip()
+      password = self.pass_entry.get().strip()
+      self.conn_string = "host='" + host + "' dbname='"
+      self.conn_string += dbname + "' user='" + user
+      self.conn_string += "' password='" + password + "'"
+      self.textarea.delete("1.0","end")
+      try:
+         self.conn = psycopg2.connect(self.conn_string)
+         self.cursor = self.conn.cursor()
+         sql = "select table_name,table_type from "
+         sql += " information_schema.tables where " 
+         sql += " table_schema='public'"
+         self.cursor.execute(sql)
+         results = self.cursor.fetchall()
+         print(results)
+         res_txt = "tables and views:\n"
+         for result in results:
+            res_txt += result[0] +", " 
+            res_txt += result[1].replace('BASE ','') + "\n"
+         self.textarea.insert(tk.END,res_txt)
+      except psycopg2.DatabaseError as e:
+         self.textarea.insert(tk.END,str(e))
+         
+   def runQuery(self):
+      sql = self.query_area.get("1.0","end").strip()
+      self.cursor.execute(sql)
+      results = self.cursor.fetchall()
+      print([desc[0] for desc in self.cursor.description])
+      for result in results:
+         print(result)
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    The new lines are lines 98-99, lines 132-133
+        and lines 135-141. Lines 98-99 make it so
+        that the
+    <b>
+     Run
+    </b>
+    button to run the query
+        is connected to calling the
+    <b>
+     runQuery()
+    </b>
+    function. Lines
+        132-133 make it so that if there is
+        an error in connecting to the database, the
+        error is displayed in the textarea for the
+        results from connecting to a database. Lines 135-141
+        run the select query and display the results
+        to the console. The next version will have
+        those results placed into the Treeview (table) below
+        the query area.
+   </p>
+   <p>
+    To save time, many explanations were left out.
+        This will hopefully be filled in at some
+        point. Here is a good working version of
+        the program.
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-python">
+"""
+To install tkinter on UbuntuMate 20.04
+sudo apt install python3-tk
+"""
+import tkinter as tk
+import tkinter.ttk as ttk
+import psycopg2
+
+class MyGui(tk.Tk): # inherit from Tk class in tk module
+   def __init__(self):
+      tk.Tk.__init__(self) # call parent class constructor
+      self.initMenu()
+      tabControl = ttk.Notebook(self)
+      self.tab1 = ttk.Frame(tabControl)
+      self.tab2 = ttk.Frame(tabControl)
+      tabControl.add(self.tab1,text='Set Database')
+      tabControl.add(self.tab2,text='Query Database');
+      tabControl.pack(expand=True,fill=tk.BOTH)
+      self.title('Database Query Tool')
+      self.geometry('700x600+50+50') # 700x400 at 50,50
+      self.setTab1()
+      self.setTab2()
+      
+   def setTab1(self):
+      frame = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="Database Properties",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      frame1 = ttk.Frame(self.tab1)
+      frame1.pack(fill=tk.X)
+      lbl1 = ttk.Label(frame1,text="host",width=8)
+      lbl1.pack(side=tk.LEFT, padx=5, pady=7)
+      self.host_entry = ttk.Entry(frame1)
+      self.host_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      frame2 = ttk.Frame(self.tab1)
+      frame2.pack(fill=tk.X)
+      lbl2 = ttk.Label(frame2, text="dbname", width=8)
+      lbl2.pack(side=tk.LEFT, padx=5, pady=7)
+      self.db_entry = ttk.Entry(frame2)
+      self.db_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame3 = ttk.Frame(self.tab1)
+      frame3.pack(fill=tk.X)
+      lbl3 = ttk.Label(frame3, text="user", width=8)
+      lbl3.pack(side=tk.LEFT, padx=5, pady=7)
+      self.user_entry = ttk.Entry(frame3)
+      self.user_entry.pack(fill=tk.X, padx=5, expand=True) 
+      
+      frame4 = ttk.Frame(self.tab1)
+      frame4.pack(fill=tk.X)
+      lbl4 = ttk.Label(frame4, text="password", width=8)
+      lbl4.pack(side=tk.LEFT, padx=5, pady=7)
+      self.pass_entry = ttk.Entry(frame4, show="*")
+      self.pass_entry.pack(fill=tk.X, padx=5, expand=True)
+      
+      self.host_entry.insert(tk.END,"localhost")
+      self.db_entry.insert(tk.END,"test_db")
+      self.user_entry.insert(tk.END,"bob")
+      self.pass_entry.insert(tk.END,"somepass")
+      
+      button_frame1 = ttk.Frame(self.tab1)
+      button_frame1.pack(fill=tk.X)
+      set_button = tk.Button(button_frame1, text="OK", 
+         command=self.setDB)
+      set_button.pack(side=tk.RIGHT, padx=20, pady=5)
+      
+      frame5 = ttk.Frame(self.tab1, relief=tk.RAISED, 
+         borderwidth=1)
+      frame5.pack(fill=tk.X)
+      lbl_res = ttk.Label(frame5, text="Tables and Views")
+      lbl_res.pack(side=tk.TOP, padx=5, pady=5)
+      
+      table_frame = ttk.Frame(self.tab1, relief=tk.RAISED,
+         borderwidth=2)
+      table_frame.pack(fill=tk.X,expand=False)
+      self.textarea = tk.Text(table_frame,height=15)
+      self.textarea.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+         
+   def setTab2(self):
+      frame = ttk.Frame(self.tab2)
+      frame.pack(fill=tk.X)
+      lbl = ttk.Label(frame,text="SQL query to run",width=20)
+      lbl.pack(side=tk.TOP, padx=5, pady=5)
+      
+      query_frame = ttk.Frame(self.tab2, relief=tk.RAISED,
+         borderwidth=2)
+      query_frame.pack(fill=tk.X,expand=False)
+      self.query_area = tk.Text(query_frame,height=5)
+      self.query_area.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5,
+         expand=False)
+      
+      self.query_area.insert(tk.END,"select * from students_view")
+      
+      ok_frame = ttk.Frame(self.tab2)
+      ok_frame.pack(fill=tk.X, expand=False)
+      run_button = tk.Button(ok_frame, text="Run", 
+         command=self.runQuery)
+      run_button.pack(side=tk.RIGHT, padx=25, pady=5)
+      
+      table_frame = ttk.Frame(self.tab2,height=100)
+      table_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+      self.tree = ttk.Treeview(table_frame)
+      self.tree["show"] = "headings"
+      
+   def setDB(self):
+      host = self.host_entry.get().strip()
+      dbname = self.db_entry.get().strip()
+      user = self.user_entry.get().strip()
+      password = self.pass_entry.get().strip()
+      self.conn_string = "host='" + host + "' dbname='"
+      self.conn_string += dbname + "' user='" + user
+      self.conn_string += "' password='" + password + "'"
+      self.textarea.delete("1.0","end")
+      try:
+         self.conn = psycopg2.connect(self.conn_string)
+         self.cursor = self.conn.cursor()
+         sql = "select table_name,table_type from "
+         sql += " information_schema.tables where " 
+         sql += " table_schema='public'"
+         self.cursor.execute(sql)
+         results = self.cursor.fetchall()
+         print(results)
+         res_txt = "tables and views:\n"
+         for result in results:
+            res_txt += result[0] +", " 
+            res_txt += result[1].replace('BASE ','') + "\n"
+         self.textarea.insert(tk.END,res_txt)
+      except psycopg2.DatabaseError as e:
+         self.textarea.insert(tk.END,str(e))
+         
+   def runQuery(self):
+      sql = self.query_area.get("1.0","end").strip()
+      self.cursor.execute(sql)
+      results = self.cursor.fetchall()
+      headers = [desc[0] for desc in self.cursor.description]
+      lines = []
+      for result in results:
+         line = []
+         for item in result:
+            line.append(item)
+         lines.append(line)
+      print(lines)
+      self.updateTable(headers,lines)
+      
+   def updateTable(self,headers,lines):
+      for child in self.tree.get_children():
+         self.tree.delete(child)
+      cols = []
+      for header in headers:
+         cols.append(header)
+      print("cols:",cols)
+      self.tree["columns"] = cols
+      for i in range(0, len(cols)):
+         self.tree.column(cols[i],width=700//len(cols))
+      for header in headers:
+         self.tree.heading(header,text=header)
+      for line in lines:
+         value_l = []
+         for item in line:
+            if (type(item) == str):
+               item = item.strip()
+            value_l.append(str(item))
+         self.tree.insert("","end",text="",values=value_l)
+      self.tree.grid(row=0, column=0, sticky='we')
+      self.grid_columnconfigure(0, weight=1)
+      self.tree.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+      
+   def initMenu(self):
+      menubar = tk.Menu(self)
+      fileOptions = tk.Menu(menubar)
+      menubar.add_cascade(label='File',menu=fileOptions)
+      fileOptions.add_command(label='Quit',
+         command=self.destroy)
+      self.config(menu=menubar)
+
+app = MyGui()
+app.mainloop()</code></pre>
+   <p>
+    This program is capable of performing select queries
+        on any PostgreSQL database that it can connect
+        to.
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module6.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module6/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:46 GMT -->
+</html>

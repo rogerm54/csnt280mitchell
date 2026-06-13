@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module5/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:44 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module5.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 5.1 - Using scripts to process data files into SQL insert statements
+   </h2>
+   <p>
+    A common problem that people who work with
+        database applications run into is having to take
+        existing data and put it into a database.
+        Sometimes the data was stored in an Excel
+        spreadsheet. In other cases, the data may have
+        come from an existing database application and is
+        in the form of a comma-separated-value (CSV) file.
+   </p>
+   <p>
+    In an ideal world, your organization bought the
+        perfect database application that you can use forever.
+        In practice, this does not happen. So, your
+        organization is going to have to move existing
+        data into a new database application at some
+        point. If you are lucky, the existing data
+        is already in a format that can be
+        directly imported into a table in the new
+        database. However, most likely you will have to
+        do some manipulation of the data to get
+        the data into a format that can be
+        imported.
+   </p>
+   <h3>
+    CSV files for a single table
+   </h3>
+   <p>
+    Let's start with a case that the existing
+        data is a CSV file that should be
+        imported into a single table. Suppose that we
+        have some course data that is for courses
+        in the CSNT program. Here is the file
+        "courses.csv":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+prefix,number,title,credits,location
+CENT,110,Intro to Information Systems,3,2-608
+CENT,132,ICT Support,4,20-15
+CENT,140,Computer Networking I,4,13-104
+CENT,228,Sys Adm &amp; TCP/IP,4,13-112
+CENT,231,Telecommunications,4,20-11
+CENT,240,Computer Networking II,4,13-104
+CENT,270,Network Operating Systems I,4,13-108
+CENT,275,Security Essentials,3,13-112
+CENT,280,Database Systems I,3,2-603
+CENT,310,Network Security,3,13-108
+CENT,315,Network Management,3,13-112
+CENT,330,Ethical Hacking,3,13-108</code></pre>
+   <p>
+    To keep things simple, assume that we only
+        have one course prefix. In reality, you would
+        have many course prefixes (at least one for
+        each department on campus). We have two things
+        that we would like to change for our
+        new database. In the new database, we want
+        to have a table called
+    <b>
+     courses
+    </b>
+    and another
+        table called
+    <b>
+     sections
+    </b>
+    . This is because for several
+        courses, there can be more than one section.
+        So, we don't want to store the location
+        with the course information. The location would be
+        stored with the section information. The other thing
+        we want to change is that the prefix
+        should be changed to 'CSNT' instead of 'CENT'.
+   </p>
+   <p>
+    With this small amount of data, we could
+        easily hand enter the new data in for
+        our courses table. But, let's come up with
+        a solution that would scale if we had
+        a CSV file with 2000 rows instead of
+        13. Assume that we have our courses table
+        that would be created using the following SQL
+        statement:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+create table courses(
+   id serial,
+   prefix text,
+   number text,
+   title text,
+   credits integer,
+   primary key (id)
+);</code></pre>
+   <p>
+    This could be processed using a Python program
+        like this:
+   </p>
+   <pre class="line-numbers" data-line="" data-start=" make_courses.py"><code class="language-python">
+# make_courses.py
+infile = open("courses.csv","r")
+infile.readline() # skip header line
+lines = infile.readlines()
+infile.close()
+for line in lines:
+   tokens = line.strip().split(",")
+   prefix = tokens[0].replace('E','S')
+   print('insert into courses (prefix, number, title, credits) values ')
+   print(" ('" + prefix + "','" + tokens[1] + "','",end='')
+   print(tokens[2] + "'," + tokens[3] + ");")</code></pre>
+   <p>
+    If you run this program, you will see
+        the following in the terminal:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 make_courses.py 
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','110','Intro to Information Systems',3);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','132','ICT Support',4);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','140','Computer Networking I',4);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','228','Sys Adm &amp; TCP/IP',4);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','231','Telecommunications',4);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','240','Computer Networking II',4);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','270','Network Operating Systems I',4);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','275','Security Essentials',3);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','280','Database Systems I',3);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','310','Network Security',3);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','315','Network Management',3);
+insert into courses (prefix, number, title, credits) values 
+   ('CSNT','330','Ethical Hacking',3);</code></pre>
+   <p>
+    To write this to an output file called
+        "add_course_data.sql", just use the following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 make_courses.py &gt; add_course_data.sql</code></pre>
+   <p>
+    That is, just use the redirection operator,
+    <b>
+     &gt;
+    </b>
+    ,
+        to output to that SQL script.
+   </p>
+   <h4>
+    Using a Node.js solution
+   </h4>
+   <p>
+    JavaScript is becoming a more important language with
+        respect to databases. There has been a definite
+        movement from web applications served out using Apache
+        and PHP, to web applications that use Node.js.
+        So, it is worth gaining some familiarity Node.js
+        and JavaScript.
+   </p>
+   <p>
+    Let's solve the problem using a Node.js package
+        called
+    <b>
+     fs
+    </b>
+    . The virtual machines already have Node.js
+        and
+    <b>
+     npm
+    </b>
+    the Node package manager installed. If
+        you want to install this on another Ubuntu
+        machine, you can follow the steps
+    <a href="../setup/virtual.html#node_js" target="_blank">
+     from the virtual machine setup
+    </a>
+    Once you have
+        Node.js and npm installed, you can start by
+        creating a working directory on your Desktop:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ mkdir -p ~/Desktop/node_area/courses_test
+$ cd ~/Desktop/node_area/courses_test</code></pre>
+   <p>
+    Once you are in that directory, run the
+        following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ npm init -y</code></pre>
+   <p>
+    The first line initializes the directory so that
+        Node.js packages can be set up to be
+        local to that directory. That instruction creates a
+        subdirectory called
+    <b>
+     node_modules
+    </b>
+    that will be used to
+        hold any Node.js packages you install. That instruction
+        also creates a file called "package.json" that will
+        hold the configuration that Node.js needs to manage
+        any packages you install.
+   </p>
+   <p>
+    Next, run this command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ npm install fs</code></pre>
+   <p>
+    This will install the
+    <b>
+     fs
+    </b>
+    package inside the
+    <b>
+     node_modules
+    </b>
+    directory set up by the previous command.
+        Now, you can start using JavaScript code that
+        uses the
+    <b>
+     fs
+    </b>
+    package. Here is the starting
+        code for the file "make_courses.js":
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-javascript">
+const fs = require("fs");
+fs.readFile("courses.csv", function(err, buff) {});</code></pre>
+   <p>
+    Line 1 is used to import the
+    <b>
+     fs
+    </b>
+    module from the fs package. Line 2 uses
+        the
+    <b>
+     fs.readFile()
+    </b>
+    function to read the file "courses.csv".
+        On line 2, the second argument to the
+    <b>
+     fs.readFile()
+    </b>
+    function is an anonymous function with two
+        parameters. The first parameter,
+    <b>
+     err
+    </b>
+    , is an object
+        that holds any error message. The second parameter,
+    <b>
+     buff
+    </b>
+    , is an object that holds the contents
+        of the file being read. That function is
+        not doing anything yet, as the curly braces
+        (
+    <b>
+     { }
+    </b>
+    ) surrounding the body of that function
+        are empty at this point.
+   </p>
+   <p>
+    Let's make a small change to the code,
+        so that it is easier to see that
+        we have not yet defined the body of
+        the anonymous function that handles the event that
+        the file is read. Here is the new
+        code:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-javascript">
+const fs = require("fs");
+fs.readFile("courses.csv", function(err, buff) {
+   
+});</code></pre>
+   <p>
+    Now, it is easier to see that line
+        3 is just the empty body of that
+        anonymous function. Before modifying the code further, make
+        sure you copy "courses.csv" into the working directory
+        (~/Desktop/node_area/courses_test). Then, this is the new version of
+        the code:
+   </p>
+   <pre class="line-numbers" data-line="3-5"><code class="language-javascript">
+const fs = require("fs");
+fs.readFile("courses.csv", function(err, buff) {
+   let data = [];
+   data = buff.toString().split("\n");
+   console.log(data);
+});</code></pre>
+   <p>
+    The new lines are lines 3-5. On line
+        3 we declare
+    <b>
+     data
+    </b>
+    to be an empty
+        array. On line 4 we use the
+    <b>
+     toString()
+    </b>
+    method to get the contents of the read
+        file into string format and split that string
+        using a newline (
+    <b>
+     \n
+    </b>
+    ) character. The resulting array
+        is assigned to
+    <b>
+     data
+    </b>
+    . Line 5 just prints
+        the data array to the console. To run
+        this program, use the following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ node make_courses.js</code></pre>
+   <p>
+    Here is the result of running that command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ node make_courses.js
+[ 'prefix,number,title,credits,location',
+  'CENT,110,Intro to Information Systems,3,2-608',
+  'CENT,132,ICT Support,4,20-15',
+  'CENT,140,Computer Networking I,4,13-104',
+  'CENT,228,Sys Adm &amp; TCP/IP,4,13-112',
+  'CENT,231,Telecommunications,4,20-11',
+  'CENT,240,Computer Networking II,4,13-104',
+  'CENT,270,Network Operating Systems I,4,13-108',
+  'CENT,275,Security Essentials,3,13-112',
+  'CENT,280,Database Systems I,3,2-603',
+  'CENT,310,Network Security,3,13-108',
+  'CENT,315,Network Management,3,13-112',
+  'CENT,330,Ethical Hacking,3,13-108',
+  '' ]</code></pre>
+   <p>
+    As you can see, an array of strings
+        holding all the lines from the file is
+        displayed. Note that the first element and the
+        last element don't contain data for a course
+        record. So, when we set up an index-based
+        for loop, we will exclude those elements. Here
+        is the new version of the code:
+   </p>
+   <pre class="line-numbers" data-line="5-7"><code class="language-javascript">
+const fs = require("fs");
+fs.readFile("courses.csv", function(err, buff) {
+   let data = [];
+   data = buff.toString().split("\n");
+   for (let i = 1; i &lt; data.length - 1; i++) {
+      console.log(data[i]);
+   }
+});</code></pre>
+   <p>
+    The new lines are lines 5-7. These lines
+        setup a for loop that goes over all
+        the elements of the data array except for
+        the first and last element. Line 6 just
+        prints out the element to the screen. Here
+        is the result of running the code now:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ node make_courses.js
+CENT,110,Intro to Information Systems,3,2-608
+CENT,132,ICT Support,4,20-15
+CENT,140,Computer Networking I,4,13-104
+CENT,228,Sys Adm &amp; TCP/IP,4,13-112
+CENT,231,Telecommunications,4,20-11
+CENT,240,Computer Networking II,4,13-104
+CENT,270,Network Operating Systems I,4,13-108
+CENT,275,Security Essentials,3,13-112
+CENT,280,Database Systems I,3,2-603
+CENT,310,Network Security,3,13-108
+CENT,315,Network Management,3,13-112
+CENT,330,Ethical Hacking,3,13-108</code></pre>
+   <p>
+    At this point, what we have to do
+        is very similar to the Python program. Here
+        is the new version of the code:
+   </p>
+   <pre class="line-numbers" data-line="6-11"><code class="language-javascript">
+const fs = require("fs");
+fs.readFile("courses.csv", function(err, buff) {
+   let data = [];
+   data = buff.toString().split("\n");
+   for (let i = 1; i &lt; data.length - 1; i++) {
+      let tokens = data[i].trim().split(",");
+      const prefix = tokens[0].replace('E','S');
+      let string = "insert into courses (prefix, number, title, credits)";
+      string += " values\n ('" + prefix + "','" + tokens[1];
+      string += "','" + tokens[2] + "'," + tokens[3] + ");";
+      console.log(string);
+   }
+});</code></pre>
+   <p>
+    The new lines are lines 6-11. Line 6
+        calls
+    <b>
+     trim()
+    </b>
+    to trim off any whitespace and
+        then calls
+    <b>
+     split()
+    </b>
+    to split the trimmed string
+        using a ",". The resulting array is stored
+        as
+    <b>
+     tokens
+    </b>
+    . Line 7 takes the first token
+        and converts 'CENT' to 'CSNT'. Line 8 starts
+        defining a variable called
+    <b>
+     string
+    </b>
+    that is the
+        beginning of the SQL INSERT statement that we
+        need. Lines 9-10 just complete that string by
+        inserting in the appropriate values from the
+    <b>
+     tokens
+    </b>
+    array. Finally, line 11 prints out that string.
+        Here is the result of running this program:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ node make_courses.js
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','110','Intro to Information Systems',3);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','132','ICT Support',4);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','140','Computer Networking I',4);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','228','Sys Adm &amp; TCP/IP',4);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','231','Telecommunications',4);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','240','Computer Networking II',4);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','270','Network Operating Systems I',4);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','275','Security Essentials',3);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','280','Database Systems I',3);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','310','Network Security',3);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','315','Network Management',3);
+insert into courses (prefix, number, title, credits) values
+   ('CSNT','330','Ethical Hacking',3);</code></pre>
+   <p>
+    This is the output we need, so we
+        can create "add_courses_data.sql" by running:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ node make_courses.js &gt; add_courses_data.sql</code></pre>
+   <p>
+    That makes use of the redirection operator,
+    <b>
+     &gt;
+    </b>
+    ,
+        just as with the Python program.
+   </p>
+   <h3>
+    A web-based solution
+   </h3>
+   <p>
+    What if we wanted to solve this in
+        a web browser, without the use of Node.js?
+        Once you get used to the syntax, the
+        Node.js solution using the
+    <b>
+     fs
+    </b>
+    package is really
+        not much different than the Python solution. But,
+        if we don't use Node.js and try to
+        solve this in a web browser, that is
+        a different situation.
+   </p>
+   <p>
+    Start with the following code, that was developed
+        on this
+    <a href="../setup/javascript.html" target="_blank">
+     page
+    </a>
+    :
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function readUploadedFile(file) {
+            const fileReader = new FileReader();
+            let promise = new Promise((resolve, reject) =&gt; {
+               fileReader.onerror = () =&gt; {
+                  fileReader.abort();
+                  reject(new DOMException("Problem reading"));
+               };
+               fileReader.onload = () =&gt; {
+                  resolve(fileReader.result);
+               };
+               fileReader.readAsText(file);
+            });
+            return promise;
+         }
+         async function handleLoadFile() {
+            const chooseFile = document.getElementById('chooseFile');
+            const file = chooseFile.files[0];
+            let contents = await readUploadedFile(file);
+            processFile(contents);
+         }
+         function processFile(contents) {
+            // This is the function that you modify
+            let data = contents.split("\n");
+            let out = "";
+            for (let i = 0; i &lt; data.length; i++) {
+               out += data[i] + "\n";
+            }
+            const textarea = document.getElementById('textarea');
+            textarea.value = out;
+            let out_data = new Blob([out], {
+               type: 'text/plain'
+            });
+            let url = window.URL.createObjectURL(out_data);
+            const download = document.getElementById('download');
+            download.href = url;
+         }
+         function init() {
+            const loadFile = document.getElementById('loadFile');
+            loadFile.addEventListener('click',handleLoadFile);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;
+      &lt;button id="loadFile"&gt;Load File&lt;/button&gt;&lt;br&gt;
+      &lt;a id="download" href=""
+         download="out.txt"&gt;Download output&lt;/a&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="5" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    Save this as "readTextFile.html" inside the working directory
+        (~/Desktop/node_area/courses_test). Open a terminal in that directory and
+        run the http-server package:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/courses_test
+$ http-server -a localhost -p 8000</code></pre>
+   <p>
+    You should see this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ http-server -a localhost -p 8000
+Starting up http-server, serving ./
+Available on:
+  http://localhost:8000
+Hit CTRL-C to stop the server</code></pre>
+   <p>
+    Open up the Chromium browser to the following
+        URL:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+localhost:8000/readTextFile.html</code></pre>
+   <p>
+    You can start by clicking on the
+    <b>
+     Choose
+        file
+    </b>
+    button and browsing for "courses.csv". When you
+        have chosen that file, click on the
+    <b>
+     Load
+        File
+    </b>
+    button to begin processing the file. You
+        should see something like this:
+   </p>
+   <p>
+    <img alt="screen shot showing the readTextFile.html application
+        after loading in the courses.csv file" border="1" src="processFile1.png"/>
+   </p>
+   <p>
+    Open up the file "readTextFile.html" and make the
+        following changes:
+   </p>
+   <pre class="line-numbers" data-line="31-39,61"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function readUploadedFile(file) {
+            const fileReader = new FileReader();
+            let promise = new Promise((resolve, reject) =&gt; {
+               fileReader.onerror = () =&gt; {
+                  fileReader.abort();
+                  reject(new DOMException("Problem reading"));
+               };
+               fileReader.onload = () =&gt; {
+                  resolve(fileReader.result);
+               };
+               fileReader.readAsText(file);
+            });
+            return promise;
+         }
+         async function handleLoadFile() {
+            const chooseFile = document.getElementById('chooseFile');
+            const file = chooseFile.files[0];
+            let contents = await readUploadedFile(file);
+            processFile(contents);
+         }
+         function processFile(contents) {
+            // This is the function that you modify
+            let data = contents.split("\n");
+            let out = "";
+            for (let i = 1; i &lt; data.length - 1; i++) {
+               //out += data[i] + "\n";
+               let tokens = data[i].trim().split(",");
+               const prefix = tokens[0].replace('E','S');
+               out += "insert into courses (prefix, number, ";
+               out += "title, credits) values\n";
+               out += " ('" + prefix + "','" + tokens[1];
+               out += "','" + tokens[2] + "'," + tokens[3];
+               out += ");\n";
+            }
+            const textarea = document.getElementById('textarea');
+            textarea.value = out;
+            let out_data = new Blob([out], {
+               type: 'text/plain'
+            });
+            let url = window.URL.createObjectURL(out_data);
+            const download = document.getElementById('download');
+            download.href = url;
+         }
+         function init() {
+            const loadFile = document.getElementById('loadFile');
+            loadFile.addEventListener('click',handleLoadFile);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;input id="chooseFile" type="file"&gt;
+      &lt;button id="loadFile"&gt;Load File&lt;/button&gt;&lt;br&gt;
+      &lt;a id="download" href=""
+         download="out.txt"&gt;Download output&lt;/a&gt;&lt;br&gt;
+      &lt;textarea id="textarea" rows="20" cols="80"&gt;&lt;/textarea&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+   <p>
+    The new lines are lines 31 to 39
+        and line 61. Line 61 just changes the
+        number of rows to 20 instead of 5.
+        This just lets us see more lines of
+        output without having to scroll.
+   </p>
+   <p>
+    Lines 31-39 are the lines that modify the
+    <b>
+     processFile()
+    </b>
+    function. This is the main area that
+        you have to change if you are going
+        to process a different kind of input file.
+        Line 31 changes the starting and ending index
+        for processing the data array. Line 32 comments
+        out the old version of
+    <b>
+     out
+    </b>
+    . Lines 33-39
+        process the data in much the same way
+        as the file "make_courses.js" did above. The only
+        differences are how much code is fit on
+        a line, but the actual processing is identical.
+   </p>
+   <p>
+    Reload the browser and run the application again.
+        You should see something like this:
+   </p>
+   <p>
+    <img alt="screen shot showing the new version
+        of the application processing the input file" border="1" src="processFile2.png"/>
+   </p>
+   <p>
+    Click on the output and save the file
+        as "add_courses_data2.sql". The contents of that file should
+        be:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+insert into courses (prefix, number, title, credits) values
+('CSNT','110','Intro to Information Systems',3);
+insert into courses (prefix, number, title, credits) values
+('CSNT','132','ICT Support',4);
+insert into courses (prefix, number, title, credits) values
+('CSNT','140','Computer Networking I',4);
+insert into courses (prefix, number, title, credits) values
+('CSNT','228','Sys Adm &amp; TCP/IP',4);
+insert into courses (prefix, number, title, credits) values
+('CSNT','231','Telecommunications',4);
+insert into courses (prefix, number, title, credits) values
+('CSNT','240','Computer Networking II',4);
+insert into courses (prefix, number, title, credits) values
+('CSNT','270','Network Operating Systems I',4);
+insert into courses (prefix, number, title, credits) values
+('CSNT','275','Security Essentials',3);
+insert into courses (prefix, number, title, credits) values
+('CSNT','280','Database Systems I',3);
+insert into courses (prefix, number, title, credits) values
+('CSNT','310','Network Security',3);
+insert into courses (prefix, number, title, credits) values
+('CSNT','315','Network Management',3);
+insert into courses (prefix, number, title, credits) values
+('CSNT','330','Ethical Hacking',3);</code></pre>
+   <p>
+    So, you now have three options for processing
+        data files to create a SQL script. You
+        could do this processing with a Python script,
+        a Node.js script (using the
+    <b>
+     fs
+    </b>
+    module), or
+        a web-based JavaScript solution. The method you choose
+        will depend on which language you prefer using.
+        The main advantage of the web-based solution is
+        that it is a GUI program that lets
+        you browse for the input file and also
+        for the output file location and name. The
+        disadvantage with the web-based solution is that you
+        need to serve out the page using the
+    <b>
+     http-server
+    </b>
+    package.
+   </p>
+   <p>
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module5.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module5/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:44 GMT -->
+</html>

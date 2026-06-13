@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module5/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:44 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module5.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 5.2 - Using scripts to normalize data for insertion into relational database tables
+   </h2>
+   <p>
+    Suppose your organization pays a company to maintain
+        the organization data in some cloud-based application. If
+        your organization chooses to change the vendor, the
+        old vendor will not be likely to export
+        all your data in nice tables. Doing so
+        would be time consuming, but it would also
+        give too clear an idea of how their
+        database was set up. It is far more
+        likely that they will give the data back
+        from an exported view.
+   </p>
+   <p>
+    Since a view combines several tables, the data
+        will not be normalized. What we will look
+        is an example of such data, and look
+        at how we might use scripts to normalize
+        the data. Here is a file, "signups_view.txt" that
+        contains data for a system that allowed students
+        to sign up for courses:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cid|prefix|number|title|credits|st_id|first_name|last_name|major|su_id
+5|CSNT|231|Telecommunications|4|1|Jane|Doe|CSNT|1
+1|CSNT|110|Intro to Information Systems|3|2|John|Doe|CSNT|2
+1|CSNT|110|Intro to Information Systems|3|3|Bill|Gates|ICS|3
+8|CSNT|275|Security Essentials|3|5|Bruce|Perens|CSNT|4
+6|CSNT|240|Computer Networking II|4|1|Jane|Doe|CSNT|5
+4|CSNT|228|Sys Adm &amp; TCP/IP|4|2|John|Doe|CSNT|6
+3|CSNT|140|Computer Networking I|4|3|Bill|Gates|ICS|7
+2|CSNT|132|ICT Support|4|4|Eric|Raymond|ICS|8
+12|CSNT|330|Ethical Hacking|3|4|Eric|Raymond|ICS|9
+11|CSNT|315|Network Management|3|7|Katherine|Johnson|ICS|10
+11|CSNT|315|Network Management|3|8|Linus|Torvalds|ICS|11
+10|CSNT|310|Network Security|3|7|Katherine|Johnson|ICS|12
+9|CSNT|280|Database Systems I|3|6|Ada|Lovelace|CSNT|13
+12|CSNT|330|Ethical Hacking|3|9|Grace|Hopper|CSNT|14
+12|CSNT|330|Ethical Hacking|3|10|Jane|Smith|CSNT|15
+7|CSNT|270|Network Operating Systems I|4|9|Grace|Hopper|CSNT|16
+8|CSNT|275|Security Essentials|3|9|Grace|Hopper|CSNT|17
+(17 rows)</code></pre>
+   <p>
+    To get a little better view of this
+        data, here is the same data placed into
+        a HTML table:
+   </p>
+   <table border="1">
+    <tr>
+     <th>
+      cid
+     </th>
+     <th>
+      prefix
+     </th>
+     <th>
+      number
+     </th>
+     <th>
+      title
+     </th>
+     <th>
+      credits
+     </th>
+     <th>
+      st_id
+     </th>
+     <th>
+      first_name
+     </th>
+     <th>
+      last_name
+     </th>
+     <th>
+      major
+     </th>
+     <th>
+      su_id
+     </th>
+    </tr>
+    <tr>
+     <td>
+      5
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      231
+     </td>
+     <td>
+      Telecommunications
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      1
+     </td>
+     <td>
+      Jane
+     </td>
+     <td>
+      Doe
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      1
+     </td>
+    </tr>
+    <tr>
+     <td>
+      1
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      110
+     </td>
+     <td>
+      Intro to Information Systems
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      2
+     </td>
+     <td>
+      John
+     </td>
+     <td>
+      Doe
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      2
+     </td>
+    </tr>
+    <tr>
+     <td>
+      1
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      110
+     </td>
+     <td>
+      Intro to Information Systems
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      Bill
+     </td>
+     <td>
+      Gates
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      3
+     </td>
+    </tr>
+    <tr>
+     <td>
+      8
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      275
+     </td>
+     <td>
+      Security Essentials
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      5
+     </td>
+     <td>
+      Bruce
+     </td>
+     <td>
+      Perens
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      4
+     </td>
+    </tr>
+    <tr>
+     <td>
+      6
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      240
+     </td>
+     <td>
+      Computer Networking II
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      1
+     </td>
+     <td>
+      Jane
+     </td>
+     <td>
+      Doe
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      5
+     </td>
+    </tr>
+    <tr>
+     <td>
+      4
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      228
+     </td>
+     <td>
+      Sys Adm &amp; TCP/IP
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      2
+     </td>
+     <td>
+      John
+     </td>
+     <td>
+      Doe
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      6
+     </td>
+    </tr>
+    <tr>
+     <td>
+      3
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      140
+     </td>
+     <td>
+      Computer Networking I
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      Bill
+     </td>
+     <td>
+      Gates
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      7
+     </td>
+    </tr>
+    <tr>
+     <td>
+      2
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      132
+     </td>
+     <td>
+      ICT Support
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      Eric
+     </td>
+     <td>
+      Raymond
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      8
+     </td>
+    </tr>
+    <tr>
+     <td>
+      12
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      330
+     </td>
+     <td>
+      Ethical Hacking
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      Eric
+     </td>
+     <td>
+      Raymond
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      9
+     </td>
+    </tr>
+    <tr>
+     <td>
+      11
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      315
+     </td>
+     <td>
+      Network Management
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      7
+     </td>
+     <td>
+      Katherine
+     </td>
+     <td>
+      Johnson
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      10
+     </td>
+    </tr>
+    <tr>
+     <td>
+      11
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      315
+     </td>
+     <td>
+      Network Management
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      8
+     </td>
+     <td>
+      Linus
+     </td>
+     <td>
+      Torvalds
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      11
+     </td>
+    </tr>
+    <tr>
+     <td>
+      10
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      310
+     </td>
+     <td>
+      Network Security
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      7
+     </td>
+     <td>
+      Katherine
+     </td>
+     <td>
+      Johnson
+     </td>
+     <td>
+      ICS
+     </td>
+     <td>
+      12
+     </td>
+    </tr>
+    <tr>
+     <td>
+      9
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      280
+     </td>
+     <td>
+      Database Systems I
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      6
+     </td>
+     <td>
+      Ada
+     </td>
+     <td>
+      Lovelace
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      13
+     </td>
+    </tr>
+    <tr>
+     <td>
+      12
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      330
+     </td>
+     <td>
+      Ethical Hacking
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      9
+     </td>
+     <td>
+      Grace
+     </td>
+     <td>
+      Hopper
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      14
+     </td>
+    </tr>
+    <tr>
+     <td>
+      12
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      330
+     </td>
+     <td>
+      Ethical Hacking
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      10
+     </td>
+     <td>
+      Jane
+     </td>
+     <td>
+      Smith
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      15
+     </td>
+    </tr>
+    <tr>
+     <td>
+      7
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      270
+     </td>
+     <td>
+      Network Operating Systems I
+     </td>
+     <td>
+      4
+     </td>
+     <td>
+      9
+     </td>
+     <td>
+      Grace
+     </td>
+     <td>
+      Hopper
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      16
+     </td>
+    </tr>
+    <tr>
+     <td>
+      8
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      275
+     </td>
+     <td>
+      Security Essentials
+     </td>
+     <td>
+      3
+     </td>
+     <td>
+      9
+     </td>
+     <td>
+      Grace
+     </td>
+     <td>
+      Hopper
+     </td>
+     <td>
+      CSNT
+     </td>
+     <td>
+      17
+     </td>
+    </tr>
+   </table>
+   <p>
+    As you can see, this is just a
+        bunch of data showing students that signed up
+        for courses. The data is clearly not normalized.
+        If this was your organization's data, someone in
+        your organization should have a good idea of
+        what this data means. Working with such a
+        person would be helpful in getting this data
+        normalized.
+   </p>
+   <p>
+    The titles will help you to separate out
+        the data. You would also have to make
+        some guesses about the id columns. The
+    <b>
+     cid
+    </b>
+    column seems to be a course id, as
+        the same course has the same value for
+        a given cid. The
+    <b>
+     st_id
+    </b>
+    column is probably
+        a student id as the same student has
+        the same value for st_id. The last id
+        column,
+    <b>
+     su_id
+    </b>
+    has no repeats. It is most
+        likely an id associated with the signups for
+        a course.
+   </p>
+   <p>
+    When you separate out the data, you need
+        to keep in mind how the data in
+        a given row is related. For example, Jane
+        Doe signed up for CSNT231, and we need
+        to keep this relationship. This suggests that we
+        need a bridge table to join the courses
+        and students. So, let's try to sort things
+        out by assuming that we will have a
+    <b>
+     courses
+    </b>
+    table, a
+    <b>
+     students
+    </b>
+    table and a
+    <b>
+     signups
+    </b>
+    table to join the courses table with the
+        students table.
+   </p>
+   <p>
+    When you have a join (bridge) table, you
+        have to maintain the relationship in a given
+        row of data. If you are using Python,
+        this means that you are dealing with dictionaries
+        on each row, that will be stored in
+        lists. If you are using JavaScript, the comparable
+        structure would be having JSON objects on each
+        row, being stored in arrays. Let's look at
+        some scripts in each language that will help
+        to separate out the data.
+   </p>
+   <h3>
+    Python solution
+   </h3>
+   <p>
+    Let's look at using a Python script to
+        help with the separating process. We will start
+        with something very simple. Assuming that this script,
+        "makeSQLdata.py" is in the same directory as "signups_view.txt",
+        here is the first version of the script:
+   </p>
+   <pre class="line-numbers" data-line="" data-start=" makeSQLdata.py"><code class="language-python">
+# makeSQLdata.py
+infile = open("signups_view.txt","r")
+infile.readline() # read header line
+lines = infile.readlines()
+infile.close()
+for line in lines:
+   print(line.strip())</code></pre>
+   <p>
+    This program is quite simple. The file is
+        opened on line 2 and the first line
+        is read in on line 3. Since we
+        don't need the header line, we read it
+        in but don't do anything with it. Line
+        4 reads the rest of the lines from
+        the file into a list called
+    <b>
+     lines
+    </b>
+    . Line
+        5 closes the file handle since we are
+        done reading the file. Lines 6-7 define a
+        for loop that prints out each line. Here
+        is the program in action:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-python">
+$ python3 makeSQLdata.py
+5|CSNT|231|Telecommunications|4|1|Jane|Doe|CSNT|1
+1|CSNT|110|Intro to Information Systems|3|2|John|Doe|CSNT|2
+1|CSNT|110|Intro to Information Systems|3|3|Bill|Gates|ICS|3
+8|CSNT|275|Security Essentials|3|5|Bruce|Perens|CSNT|4
+6|CSNT|240|Computer Networking II|4|1|Jane|Doe|CSNT|5
+4|CSNT|228|Sys Adm &amp; TCP/IP|4|2|John|Doe|CSNT|6
+3|CSNT|140|Computer Networking I|4|3|Bill|Gates|ICS|7
+2|CSNT|132|ICT Support|4|4|Eric|Raymond|ICS|8
+12|CSNT|330|Ethical Hacking|3|4|Eric|Raymond|ICS|9
+11|CSNT|315|Network Management|3|7|Katherine|Johnson|ICS|10
+11|CSNT|315|Network Management|3|8|Linus|Torvalds|ICS|11
+10|CSNT|310|Network Security|3|7|Katherine|Johnson|ICS|12
+9|CSNT|280|Database Systems I|3|6|Ada|Lovelace|CSNT|13
+12|CSNT|330|Ethical Hacking|3|9|Grace|Hopper|CSNT|14
+12|CSNT|330|Ethical Hacking|3|10|Jane|Smith|CSNT|15
+7|CSNT|270|Network Operating Systems I|4|9|Grace|Hopper|CSNT|16
+8|CSNT|275|Security Essentials|3|9|Grace|Hopper|CSNT|17
+(17 rows)</code></pre>
+   <p>
+    As you can see, the last row is
+        not data, so we will just pop that
+        off the end of the lines list. At
+        the same time, let's start to process the
+        columns that are related to a course:
+   </p>
+   <pre class="line-numbers" data-line="5,7-8,10-18" data-start=" makeSQLdata.py"><code class="language-python">
+# makeSQLdata.py
+infile = open("signups_view.txt","r")
+infile.readline() # read header line
+lines = infile.readlines()
+lines.pop() # get rid of the last line
+infile.close()
+course_list = []
+course_ids = []
+for line in lines:
+   course = {}
+   tokens = line.strip().split("|")
+   course["id"] = int(tokens[0])
+   course["prefix"] = tokens[1]
+   course["number"] = tokens[2]
+   if (course["id"] not in course_ids):
+      course_ids.append(course["id"])
+      course_list.append(course)
+print(course_list)</code></pre>
+   <p>
+    The new lines are line 5, lines 7-8,
+        lines 10-17 and line 18. Line 5 just
+        pops off the last element in the list,
+        since that is not a data row. Line
+        7 creates an empty list where we can
+        store a dictionary for each course. Line 8
+        creates an empty list where we can store
+        the id for a course. The
+    <b>
+     course_ids
+    </b>
+    list
+        will help to make sure we don't store
+        the same course more than one time.
+   </p>
+   <p>
+    Lines 10-17 are the new lines inside of
+        the for loop. Line10 creates an empty dictionary
+        called
+    <b>
+     course
+    </b>
+    . Line 11 splits the line using
+        a vertical bar delimiter. Line 12 converts the
+        first token to an integer and stores this
+        in the
+    <b>
+     course
+    </b>
+    dictionary under the
+    <b>
+     id
+    </b>
+    key. Line
+        13 stores the second token under the
+    <b>
+     prefix
+    </b>
+    key. line 14 stores the third token under
+        the
+    <b>
+     number
+    </b>
+    key. Although this is not all
+        the course fields, it is enough to see
+        how things are working. Lines 15-17 form an
+        if statement that checks to see if the
+        id of the course is already in the
+    <b>
+     course_ids
+    </b>
+    list. It the id is not in
+        that list, the id is stored in course_ids
+        and the dictionary called
+    <b>
+     course
+    </b>
+    is stored in
+        the
+    <b>
+     course_list
+    </b>
+    list. This selection statement is the
+        key to avoid storing the same course more
+        than once.
+   </p>
+   <p>
+    Line 18 just prints out the entire
+    <b>
+     course_list
+    </b>
+    .
+        Even though we are not storing all the
+        course information, this output should show us if
+        things are working correctly. Here is the program
+        in action:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 makeSQLdata.py
+[{'id': 5, 'prefix': 'CSNT', 'number': '231'}, {'id': 1, 'prefix': 'CSNT', 'number': '110'}, {'id': 8, 'prefix': 'CSNT', 'number': '275'}, {'id': 6, 'prefix': 'CSNT', 'number': '240'}, {'id': 4, 'prefix': 'CSNT', 'number': '228'}, {'id': 3, 'prefix': 'CSNT', 'number': '140'}, {'id': 2, 'prefix': 'CSNT', 'number': '132'}, {'id': 12, 'prefix': 'CSNT', 'number': '330'}, {'id': 11, 'prefix': 'CSNT', 'number': '315'}, {'id': 10, 'prefix': 'CSNT', 'number': '310'}, {'id': 9, 'prefix': 'CSNT', 'number': '280'}, {'id': 7, 'prefix': 'CSNT', 'number': '270'}]</code></pre>
+   <p>
+    If you look closely, you can see that
+        no course is store more than once. Also,
+        if you look at the key:value pairs, you
+        can see that the
+    <b>
+     id
+    </b>
+    value is a
+        number (no quotes). Let's modify the code so
+        that we handle all the course data and
+        change the output so that it is easier
+        to see the course_list data:
+   </p>
+   <pre class="line-numbers" data-line="15-16,21-22" data-start=" makeSQLdata.py"><code class="language-python">
+# makeSQLdata.py
+infile = open("signups_view.txt","r")
+infile.readline() # read header line
+lines = infile.readlines()
+lines.pop() # get rid of the last line
+infile.close()
+course_list = []
+course_ids = []
+for line in lines:
+   course = {}
+   tokens = line.strip().split("|")
+   course["id"] = int(tokens[0])
+   course["prefix"] = tokens[1]
+   course["number"] = tokens[2]
+   course["title"] = tokens[3]
+   course["credits"] = int(tokens[4])
+   if (course["id"] not in course_ids):
+      course_ids.append(course["id"])
+      course_list.append(course)
+#print(course_list)
+for course in course_list:
+   print(course)</code></pre>
+   <p>
+    The new lines are lines 15-16 and lines
+        20-22. Line 15 just stores the fourth token
+        under the
+    <b>
+     title
+    </b>
+    key. Line 16 converts the
+        fifth token to an integer and stores this
+        integer under the
+    <b>
+     credits
+    </b>
+    key. Line 20 comments
+        out printing the whole list at once. Lines
+        21-22 define a for loop that prints out
+        each course dictionary on a line by itself.
+        Here is the program in action:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 makeSQLdata.py
+{'id': 5, 'prefix': 'CSNT', 'number': '231', 'title': 'Telecommunications', 'credits': 4}
+{'id': 1, 'prefix': 'CSNT', 'number': '110', 'title': 'Intro to Information Systems', 'credits': 3}
+{'id': 8, 'prefix': 'CSNT', 'number': '275', 'title': 'Security Essentials', 'credits': 3}
+{'id': 6, 'prefix': 'CSNT', 'number': '240', 'title': 'Computer Networking II', 'credits': 4}
+{'id': 4, 'prefix': 'CSNT', 'number': '228', 'title': 'Sys Adm &amp; TCP/IP', 'credits': 4}
+{'id': 3, 'prefix': 'CSNT', 'number': '140', 'title': 'Computer Networking I', 'credits': 4}
+{'id': 2, 'prefix': 'CSNT', 'number': '132', 'title': 'ICT Support', 'credits': 4}
+{'id': 12, 'prefix': 'CSNT', 'number': '330', 'title': 'Ethical Hacking', 'credits': 3}
+{'id': 11, 'prefix': 'CSNT', 'number': '315', 'title': 'Network Management', 'credits': 3}
+{'id': 10, 'prefix': 'CSNT', 'number': '310', 'title': 'Network Security', 'credits': 3}
+{'id': 9, 'prefix': 'CSNT', 'number': '280', 'title': 'Database Systems I', 'credits': 3}
+{'id': 7, 'prefix': 'CSNT', 'number': '270', 'title': 'Network Operating Systems I', 'credits': 4}</code></pre>
+   <p>
+    As you can see, the list is not
+        in order by the id values. So, let's
+        sort the list by id:
+   </p>
+   <pre class="line-numbers" data-line="20" data-start=" makeSQLdata.py"><code class="language-python">
+# makeSQLdata.py
+infile = open("signups_view.txt","r")
+infile.readline() # read header line
+lines = infile.readlines()
+lines.pop() # get rid of the last line
+infile.close()
+course_list = []
+course_ids = []
+for line in lines:
+   course = {}
+   tokens = line.strip().split("|")
+   course["id"] = int(tokens[0])
+   course["prefix"] = tokens[1]
+   course["number"] = tokens[2]
+   course["title"] = tokens[3]
+   course["credits"] = int(tokens[4])
+   if (course["id"] not in course_ids):
+      course_ids.append(course["id"])
+      course_list.append(course)
+course_list.sort(key=lambda k: k["id"])
+for course in course_list:
+   print(course)</code></pre>
+   <p>
+    The new line is line 20. This line
+        sorts the
+    <b>
+     course_list
+    </b>
+    list using the
+    <b>
+     id
+    </b>
+    key
+        as the key to sort on. Now, when
+        you run the program you get this output:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 makeSQLdata.py
+{'id': 1, 'prefix': 'CSNT', 'number': '110', 'title': 'Intro to Information Systems', 'credits': 3}
+{'id': 2, 'prefix': 'CSNT', 'number': '132', 'title': 'ICT Support', 'credits': 4}
+{'id': 3, 'prefix': 'CSNT', 'number': '140', 'title': 'Computer Networking I', 'credits': 4}
+{'id': 4, 'prefix': 'CSNT', 'number': '228', 'title': 'Sys Adm &amp; TCP/IP', 'credits': 4}
+{'id': 5, 'prefix': 'CSNT', 'number': '231', 'title': 'Telecommunications', 'credits': 4}
+{'id': 6, 'prefix': 'CSNT', 'number': '240', 'title': 'Computer Networking II', 'credits': 4}
+{'id': 7, 'prefix': 'CSNT', 'number': '270', 'title': 'Network Operating Systems I', 'credits': 4}
+{'id': 8, 'prefix': 'CSNT', 'number': '275', 'title': 'Security Essentials', 'credits': 3}
+{'id': 9, 'prefix': 'CSNT', 'number': '280', 'title': 'Database Systems I', 'credits': 3}
+{'id': 10, 'prefix': 'CSNT', 'number': '310', 'title': 'Network Security', 'credits': 3}
+{'id': 11, 'prefix': 'CSNT', 'number': '315', 'title': 'Network Management', 'credits': 3}
+{'id': 12, 'prefix': 'CSNT', 'number': '330', 'title': 'Ethical Hacking', 'credits': 3}</code></pre>
+   <p>
+    As you can see, now the list is
+        sorted by the id key. You can also
+        see why we are using dictionaries to store
+        the record data. Using a dictionary keeps all
+        the data for a single record inside the
+        same dictionary. Now that this is working, let's
+        work on gathering the student data:
+   </p>
+   <pre class="line-numbers" data-line="9-10,13,20-23,27-29,31,34-35" data-start=" makeSQLdata.py"><code class="language-python">
+# makeSQLdata.py
+infile = open("signups_view.txt","r")
+infile.readline() # read header line
+lines = infile.readlines()
+lines.pop() # get rid of the last line
+infile.close()
+course_list = []
+course_ids = []
+student_list = []
+student_ids = []
+for line in lines:
+   course = {}
+   student = {}
+   tokens = line.strip().split("|")
+   course["id"] = int(tokens[0])
+   course["prefix"] = tokens[1]
+   course["number"] = tokens[2]
+   course["title"] = tokens[3]
+   course["credits"] = int(tokens[4])
+   student["id"] = int(tokens[5])
+   student["first_name"] = tokens[6]
+   student["last_name"] = tokens[7]
+   student["major"] = tokens[8]
+   if (course["id"] not in course_ids):
+      course_ids.append(course["id"])
+      course_list.append(course)
+   if (student["id"] not in student_ids):
+      student_ids.append(student["id"])
+      student_list.append(student)
+course_list.sort(key=lambda k: k["id"])
+student_list.sort(key=lambda k: k["id"])
+for course in course_list:
+   print(course)
+for student in student_list:
+   print(student)</code></pre>
+   <p>
+    The new lines are lines 9-10, line 13,
+        lines 20-23, lines 27-29, line 31 and lines
+        34-35. Lines 9 and 10 add the same
+        kind of lists that we use to store
+        the course data for the student data. Line
+        13 creates an empty dictionary named
+    <b>
+     student
+    </b>
+    . Lines
+        20-23 store the student values for the associated
+        keys. Lines 27-29 check to see if the
+        id of the student has already been stored
+        in the
+    <b>
+     student_ids
+    </b>
+    list. If not, the id
+        is store in that list and the
+    <b>
+     student
+    </b>
+    dictionary is stored in the
+    <b>
+     student_list
+    </b>
+    list. Line
+        31 sorts the
+    <b>
+     student_list
+    </b>
+    by the id key.
+        Finally, lines 34-35 define a for loop that
+        prints out each student dictionary stored in the
+        student_list list.
+   </p>
+   <p>
+    When the program is run, this is the
+        output:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 makeSQLdata.py
+{'id': 1, 'prefix': 'CSNT', 'number': '110', 'title': 'Intro to Information Systems', 'credits': 3}
+{'id': 2, 'prefix': 'CSNT', 'number': '132', 'title': 'ICT Support', 'credits': 4}
+{'id': 3, 'prefix': 'CSNT', 'number': '140', 'title': 'Computer Networking I', 'credits': 4}
+{'id': 4, 'prefix': 'CSNT', 'number': '228', 'title': 'Sys Adm &amp; TCP/IP', 'credits': 4}
+{'id': 5, 'prefix': 'CSNT', 'number': '231', 'title': 'Telecommunications', 'credits': 4}
+{'id': 6, 'prefix': 'CSNT', 'number': '240', 'title': 'Computer Networking II', 'credits': 4}
+{'id': 7, 'prefix': 'CSNT', 'number': '270', 'title': 'Network Operating Systems I', 'credits': 4}
+{'id': 8, 'prefix': 'CSNT', 'number': '275', 'title': 'Security Essentials', 'credits': 3}
+{'id': 9, 'prefix': 'CSNT', 'number': '280', 'title': 'Database Systems I', 'credits': 3}
+{'id': 10, 'prefix': 'CSNT', 'number': '310', 'title': 'Network Security', 'credits': 3}
+{'id': 11, 'prefix': 'CSNT', 'number': '315', 'title': 'Network Management', 'credits': 3}
+{'id': 12, 'prefix': 'CSNT', 'number': '330', 'title': 'Ethical Hacking', 'credits': 3}
+{'id': 1, 'first_name': 'Jane', 'last_name': 'Doe', 'major': 'CSNT'}
+{'id': 2, 'first_name': 'John', 'last_name': 'Doe', 'major': 'CSNT'}
+{'id': 3, 'first_name': 'Bill', 'last_name': 'Gates', 'major': 'ICS'}
+{'id': 4, 'first_name': 'Eric', 'last_name': 'Raymond', 'major': 'ICS'}
+{'id': 5, 'first_name': 'Bruce', 'last_name': 'Perens', 'major': 'CSNT'}
+{'id': 6, 'first_name': 'Ada', 'last_name': 'Lovelace', 'major': 'CSNT'}
+{'id': 7, 'first_name': 'Katherine', 'last_name': 'Johnson', 'major': 'ICS'}
+{'id': 8, 'first_name': 'Linus', 'last_name': 'Torvalds', 'major': 'ICS'}
+{'id': 9, 'first_name': 'Grace', 'last_name': 'Hopper', 'major': 'CSNT'}
+{'id': 10, 'first_name': 'Jane', 'last_name': 'Smith', 'major': 'CSNT'}</code></pre>
+   <p>
+    Now that we can store the courses and
+        students data correctly, we can modify the code
+        to store the
+    <b>
+     signups
+    </b>
+    data. We can also
+        modify the output so that we produce the
+        correct SQL INSERT statements:
+   </p>
+   <pre class="line-numbers" data-line="11,15,26-28,38-42,44-53" data-start=" makeSQLdata.py"><code class="language-python">
+# makeSQLdata.py
+infile = open("signups_view.txt","r")
+infile.readline() # read header line
+lines = infile.readlines()
+lines.pop() # get rid of the last line
+infile.close()
+course_list = []
+course_ids = []
+student_list = []
+student_ids = []
+signup_list = []
+for line in lines:
+   course = {}
+   student = {}
+  signup = {}
+   tokens = line.strip().split("|")
+   course["id"] = int(tokens[0])
+   course["prefix"] = tokens[1]
+   course["number"] = tokens[2]
+   course["title"] = tokens[3]
+   course["credits"] = int(tokens[4])
+   student["id"] = int(tokens[5])
+   student["first_name"] = tokens[6]
+   student["last_name"] = tokens[7]
+   student["major"] = tokens[8]
+   signup["course_id"] = course["id"]
+   signup["student_id"] = student["id"]
+   signup_list.append(signup)
+   if (course["id"] not in course_ids):
+      course_ids.append(course["id"])
+      course_list.append(course)
+   if (student["id"] not in student_ids):
+      student_ids.append(student["id"])
+      student_list.append(student)
+course_list.sort(key=lambda k: k["id"])
+student_list.sort(key=lambda k: k["id"])
+for course in course_list:
+   temp = "insert into courses (id, prefix, number, title, credits) "
+   temp += "values\n (" + str(course["id"]) + ",'" + course["prefix"]
+   temp += "','" + course["number"] + "','" + course["title"]
+   temp += "'," + str(course["credits"]) + ");"
+   print(temp)
+for student in student_list:
+   temp = "insert into students (id, first_name, last_name, major) "
+   temp += "values\n (" + str(student["id"]) + ",'"
+   temp += student["first_name"] + "','" + student["last_name"]
+   temp += "','" + student["major"] + "');"
+   print(temp)
+for signup in signup_list:
+   temp = "insert into signups (course_id, student_id) "
+   temp += "values (" + str(signup["course_id"]) + ","
+   temp += str(signup["student_id"]) + ");"
+   print(temp)</code></pre>
+   <p>
+    The new lines are line 11, line 15,
+        lines 26-28, lines 38-42, lines 44-48 and lines
+        49-53. Line 11 creates an empty list called
+    <b>
+     signup_list
+    </b>
+    that will be used to store the
+        signup dictionaries. Line 15 creates an empty dictionary
+        for the signup record. Lines 26-28 populate the
+    <b>
+     signup
+    </b>
+    dictionary and append that dictionary to the
+    <b>
+     signup_list
+    </b>
+    list.
+   </p>
+   <p>
+    Lines 38-42 create the SQL INSERT statements for
+        the courses. Lines 44-48 create the SQL INSERT
+        statements for the students. Finally, lines 49-53 create
+        the SQL INSERT statements for the signups. The
+        following shows the output when this program is
+        run:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ python3 makeSQLdata.py
+insert into courses (id, prefix, number, title, credits) values
+   (1,'CSNT','110','Intro to Information Systems',3);
+insert into courses (id, prefix, number, title, credits) values
+   (2,'CSNT','132','ICT Support',4);
+insert into courses (id, prefix, number, title, credits) values
+   (3,'CSNT','140','Computer Networking I',4);
+insert into courses (id, prefix, number, title, credits) values
+   (4,'CSNT','228','Sys Adm &amp; TCP/IP',4);
+insert into courses (id, prefix, number, title, credits) values
+   (5,'CSNT','231','Telecommunications',4);
+insert into courses (id, prefix, number, title, credits) values
+   (6,'CSNT','240','Computer Networking II',4);
+insert into courses (id, prefix, number, title, credits) values
+   (7,'CSNT','270','Network Operating Systems I',4);
+insert into courses (id, prefix, number, title, credits) values
+   (8,'CSNT','275','Security Essentials',3);
+insert into courses (id, prefix, number, title, credits) values
+   (9,'CSNT','280','Database Systems I',3);
+insert into courses (id, prefix, number, title, credits) values
+   (10,'CSNT','310','Network Security',3);
+insert into courses (id, prefix, number, title, credits) values
+   (11,'CSNT','315','Network Management',3);
+insert into courses (id, prefix, number, title, credits) values
+   (12,'CSNT','330','Ethical Hacking',3);
+insert into students (id, first_name, last_name, major) values
+   (1,'Jane','Doe','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (2,'John','Doe','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (3,'Bill','Gates','ICS');
+insert into students (id, first_name, last_name, major) values
+   (4,'Eric','Raymond','ICS');
+insert into students (id, first_name, last_name, major) values
+   (5,'Bruce','Perens','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (6,'Ada','Lovelace','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (7,'Katherine','Johnson','ICS');
+insert into students (id, first_name, last_name, major) values
+   (8,'Linus','Torvalds','ICS');
+insert into students (id, first_name, last_name, major) values
+   (9,'Grace','Hopper','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (10,'Jane','Smith','CSNT');
+insert into signups (course_id, student_id) values (5,1);
+insert into signups (course_id, student_id) values (1,2);
+insert into signups (course_id, student_id) values (1,3);
+insert into signups (course_id, student_id) values (8,5);
+insert into signups (course_id, student_id) values (6,1);
+insert into signups (course_id, student_id) values (4,2);
+insert into signups (course_id, student_id) values (3,3);
+insert into signups (course_id, student_id) values (2,4);
+insert into signups (course_id, student_id) values (12,4);
+insert into signups (course_id, student_id) values (11,7);
+insert into signups (course_id, student_id) values (11,8);
+insert into signups (course_id, student_id) values (10,7);
+insert into signups (course_id, student_id) values (9,6);
+insert into signups (course_id, student_id) values (12,9);
+insert into signups (course_id, student_id) values (12,10);
+insert into signups (course_id, student_id) values (7,9);
+insert into signups (course_id, student_id) values (8,9);</code></pre>
+   <p>
+    All that remains is to redirect this output
+        into a SQL script so that the normalized
+        data can be inserted into a database.
+   </p>
+   <h3>
+    JavaScript and Node.js solution
+   </h3>
+   <p>
+    If you make a subdirectory inside the ~/Desktop/node_area/courses_test
+        directory, then you will be able to use
+        the
+    <b>
+     fs
+    </b>
+    module installed inside the
+    <b>
+     node_modules
+    </b>
+    directory
+        inside ~/Desktop/node_area/courses_test. Node.js will be able to find
+        the module with this arrangement. So, carry out
+        the following steps:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/courses_test
+$ mkdir normalizing</code></pre>
+   <p>
+    Then, copy the file "signups_view.txt" into ~/Desktop/node_area/courses_test/normalizing. The
+        following file, "makeSQLdata.js" can then be run from
+        that directory:
+   </p>
+   <pre class="line-numbers" data-line="10,36-41"><code class="language-javascript">
+const fs = require('fs');
+fs.readFile("signups_view.txt", function(err, buff) {
+   let data = [];
+   data = buff.toString().split("\n");
+   course_list = [];
+   course_ids = [];
+   student_list = [];
+   student_ids = [];
+   signup_list = [];
+   for (let i = 1; i &lt; data.length - 2; i++) {
+      let tokens = data[i].trim().split("|");
+      let course = {};
+      let student = {};
+      let signup = {};
+      course.id = Number(tokens[0]);
+      course.prefix = tokens[1];
+      course.number = tokens[2];
+      course.title = tokens[3];
+      course.credits = Number(tokens[4]);
+      student.id = Number(tokens[5]);
+      student.first_name = tokens[6];
+      student.last_name = tokens[7];
+      student.major = tokens[8];
+      signup.course_id = course.id;
+      signup.student_id = student.id;
+      signup_list.push(signup);
+      if (!course_ids.includes(course.id)) {
+         course_ids.push(course.id);
+         course_list.push(course);
+      }
+      if (!student_ids.includes(student.id)) {
+         student_ids.push(student.id);
+         student_list.push(student);
+      }
+   }
+  course_list.sort(function(x, y) {
+      return x.id - y.id; 
+   });
+   student_list.sort(function(x,y) {
+      return (x.id - y.id); 
+   });
+   course_list.forEach(function(course) {
+      let temp = "insert into courses (id, prefix, number, title, credits) ";
+      temp += "values\n (" + course.id + ",'" + course.prefix;
+      temp += "','" + course.number + "','" + course.title + "',";
+      temp += course.credits + ");";
+      console.log(temp);
+   });
+   student_list.forEach(function(student) {
+      let temp = "insert into students (id, first_name, last_name, major) ";
+      temp += "values\n (" + student.id + ",'" + student.first_name;
+      temp += "','" + student.last_name + "','" + student.major
+      temp += "');";
+      console.log(temp); 
+   });
+   signup_list.forEach(function(signup) {
+      let temp = "insert into signups (course_id, student_id) values ";
+      temp += "(" + signup.course_id + "," + signup.student_id + ");";
+      console.log(temp);
+   });
+});</code></pre>
+   <p>
+    The code is very similar to the Python
+        code. There are some noticeable differences on line
+        10, lines 36-38 and lines 39-41. On line
+        10, note that the for loop must be
+        stopped before data.length -2. This is because the
+        way that JavaScript reads in the file, an
+        extra line is read in. Lines 36-38 are
+        the way that an array of JSON objects
+        is sorted. This is similar to the way
+        that Python2 used to sort lists of dictionaries.
+        But, with Python3, there is a fancier way
+        using keys. Lines 39-41 sort the student_list array
+        by id. Again, this is different from the
+        code for the Python program that sorts the
+        comparable list.
+   </p>
+   <p>
+    The way that JavaScript deals with JSON objects
+        is a little simpler than Python dictionaries. If
+        you have a dictionary named
+    <b>
+     course
+    </b>
+    and you
+        want to get the
+    <b>
+     id
+    </b>
+    key, the Python
+        code looks like this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+course["id"]</code></pre>
+   <p>
+    the correspond JavaScript code would be:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+course.id</code></pre>
+   <p>
+    You can use the same notation as the
+        Python notation in JavaScript, but it is simpler
+        to use the dot notation (as long as
+        the key name does not contain any spaces).
+   </p>
+   <p>
+    Running this JavaScript program produces the same output
+        as the Python program:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ node makeSQLdata.jsinsert into courses (id, prefix, number, title, credits) values
+   (1,'CSNT','110','Intro to Information Systems',3);
+insert into courses (id, prefix, number, title, credits) values
+   (2,'CSNT','132','ICT Support',4);
+insert into courses (id, prefix, number, title, credits) values
+   (3,'CSNT','140','Computer Networking I',4);
+insert into courses (id, prefix, number, title, credits) values
+   (4,'CSNT','228','Sys Adm &amp; TCP/IP',4);
+insert into courses (id, prefix, number, title, credits) values
+   (5,'CSNT','231','Telecommunications',4);
+insert into courses (id, prefix, number, title, credits) values
+   (6,'CSNT','240','Computer Networking II',4);
+insert into courses (id, prefix, number, title, credits) values
+   (7,'CSNT','270','Network Operating Systems I',4);
+insert into courses (id, prefix, number, title, credits) values
+   (8,'CSNT','275','Security Essentials',3);
+insert into courses (id, prefix, number, title, credits) values
+   (9,'CSNT','280','Database Systems I',3);
+insert into courses (id, prefix, number, title, credits) values
+   (10,'CSNT','310','Network Security',3);
+insert into courses (id, prefix, number, title, credits) values
+   (11,'CSNT','315','Network Management',3);
+insert into courses (id, prefix, number, title, credits) values
+   (12,'CSNT','330','Ethical Hacking',3);
+insert into students (id, first_name, last_name, major) values
+   (1,'Jane','Doe','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (2,'John','Doe','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (3,'Bill','Gates','ICS');
+insert into students (id, first_name, last_name, major) values
+   (4,'Eric','Raymond','ICS');
+insert into students (id, first_name, last_name, major) values
+   (5,'Bruce','Perens','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (6,'Ada','Lovelace','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (7,'Katherine','Johnson','ICS');
+insert into students (id, first_name, last_name, major) values
+   (8,'Linus','Torvalds','ICS');
+insert into students (id, first_name, last_name, major) values
+   (9,'Grace','Hopper','CSNT');
+insert into students (id, first_name, last_name, major) values
+   (10,'Jane','Smith','CSNT');
+insert into signups (course_id, student_id) values (5,1);
+insert into signups (course_id, student_id) values (1,2);
+insert into signups (course_id, student_id) values (1,3);
+insert into signups (course_id, student_id) values (8,5);
+insert into signups (course_id, student_id) values (6,1);
+insert into signups (course_id, student_id) values (4,2);
+insert into signups (course_id, student_id) values (3,3);
+insert into signups (course_id, student_id) values (2,4);
+insert into signups (course_id, student_id) values (12,4);
+insert into signups (course_id, student_id) values (11,7);
+insert into signups (course_id, student_id) values (11,8);
+insert into signups (course_id, student_id) values (10,7);
+insert into signups (course_id, student_id) values (9,6);
+insert into signups (course_id, student_id) values (12,9);
+insert into signups (course_id, student_id) values (12,10);
+insert into signups (course_id, student_id) values (7,9);
+insert into signups (course_id, student_id) values (8,9);</code></pre>
+   <p>
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module5.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module5/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:44 GMT -->
+</html>

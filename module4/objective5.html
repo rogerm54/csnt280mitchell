@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective5.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 4.5 - Using plpgsql scripts for complex SQL queries
+   </h2>
+   <h3>
+    Using plpgsql functions
+   </h3>
+   <p>
+    SQL is a declarative programming language. This means
+        that it consists of commands that don't directly
+        deal with the details of carrying a process
+        out. Therefore, SQL does not have the normal
+        programming constructs like selection statements and repetition statements.
+        In
+    <b>
+     PostgreSQL
+    </b>
+    , the
+    <b>
+     plpgsql
+    </b>
+    language is used so
+        that you can combine selection statements and repetition
+        statements with SQL statements.
+   </p>
+   <p>
+    Here is the structure of a plpgsql script:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+create or replace function func_name(params)
+  returns type as
+  $func$
+    declare
+      /* declare local variables here */
+    begin
+      /*
+        instructions go here
+      */
+    end;
+  $func$
+  language 'plpgsql';</code></pre>
+   <p>
+    Line 1 is the declaration for a plpgsql
+        function. Line 2 is where the return type
+        is set.
+   </p>
+   <p>
+    Lines 3 and 11 are the "dollar-quotes" that
+        allow you to enter strings without having to
+        escape them with additional quotes. The word 'func'
+        can be any word, as long as it
+        is repeated in both places.
+   </p>
+   <p>
+    Within the dollar-quotes is an optional
+    <b>
+     declare
+    </b>
+    section
+        and the
+    <b>
+     begin
+    </b>
+    and
+    <b>
+     end
+    </b>
+    section. Note that
+        there is a semicolon after the keyword
+    <b>
+     end
+    </b>
+    .
+        Unless the return type is void the lines
+        between begin and end; need to have a
+        return statement that returns a variable that matches
+        the return type specified on line 2.
+   </p>
+   <h3>
+    plpgsql syntax and operators
+   </h3>
+   <p>
+    All instructions in plpgsql must end with a
+        semicolon (;). Selection statements have the following syntax:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+    if condition1 then
+      do something
+    end if</code></pre>
+   <p>
+    That is, there is always an
+    <b>
+     end if
+    </b>
+    at the end of the selection statement. You
+        can also have
+    <b>
+     elsif
+    </b>
+    (else if) and
+    <b>
+     else
+    </b>
+    clauses as well. Note that the else if
+        statement is spelled
+    <b>
+     elsif
+    </b>
+    in plpgsql. So, if
+        you had a set of selection statements that
+        use an if, else if and else, it
+        would look like this:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+    if condition1 then
+      instructions for condition 1
+    elsif condition2 then
+      instructions for condition 2
+    else
+      instructions if not condition1 and not condition2
+    end if;</code></pre>
+   <h4>
+    Concatenation
+   </h4>
+   <p>
+    The concatenation operator in plpgsql is
+    <b>
+     ||
+    </b>
+    . So
+        the following concatenates two strings.
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+'hot' || 'dog' -- becomes 'hotdog'</code></pre>
+   <h3>
+    Debugging plpgsql functions
+   </h3>
+   <p>
+    Just as using print statements can help debug
+        code in other languages, plpgsql has a way
+        of printing intermediate results to aid in debugging.
+        This is done by using the
+    <b>
+     raise notice
+    </b>
+    clause. Here is a simple example that shows
+        how this can be done.
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+create or replace function add_nums(_num1 integer, _num2 integer) 
+  returns integer as 
+  $func$ 
+    declare 
+      _sum integer; 
+    begin 
+      _sum := _num1 + _num2; 
+      raise notice '% + % = %',_num1,_num2,_sum; 
+      return _sum; 
+    end; 
+  $func$ 
+  language 'plpgsql';</code></pre>
+   <p>
+    Line 8 shows how
+    <b>
+     raise notice
+    </b>
+    is used.
+        The statement starts with the key words raise
+        notice. This is followed by a string enclosed
+        in single quotes. Within the string the
+    <b>
+     %
+    </b>
+    symbol is used as a placeholder for the
+        variables to be interpolated into. Following the string
+        is a list of variables that are substituted
+        into the % symbols in the string.
+   </p>
+   <p>
+    Here is a demonstration of this function:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+select add_nums(2,7); 
+NOTICE: 2 + 7 = 9 
+add_nums 
+---------- 
+        9 
+(1 row) </code></pre>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+select add_nums(99,-23); 
+NOTICE: 99 + -23 = 76 
+add_nums 
+---------- 
+       76 
+(1 row) </code></pre>
+   <p>
+    The basic idea is that you use raise
+        notice to print out the values of variables
+        so that you can trace those values to
+        help debug a function that has no syntax
+        errors but produces the wrong result.
+   </p>
+   <h3>
+    Additional documentation
+   </h3>
+   <p>
+    The PostgreSQL site has documentation on using plpgsql
+        that can be found
+    <a href="http://www.postgresql.org/docs/9.5/static/plpgsql-implementation.html" target="_blank">
+     here
+    </a>
+    .
+   </p>
+   <h3>
+    Examples
+   </h3>
+   <h4>
+    Populating several database tables
+   </h4>
+   <p>
+    Suppose you have a simple bookstore database that
+        keeps track of which customers bought which books.
+        Since a customer can buy more than one
+        book, and each book can be bought by
+        more than one customer, the relationship between customers
+        and books is many to many. Therefore, a
+        bridge table called sales will be used. Here
+        is an "init.sql" that can be used to
+        create the tables needed:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- init.sql
+drop table if exists customers cascade;
+drop table if exists books cascade;
+drop table if exists sales cascade;
+
+create table customers(
+   id serial,
+   first_name text,
+   last_name text,
+   e_mail text unique,
+   primary key (id)
+);
+create table books(
+   id serial,
+   title text,
+   author text,
+   price decimal(6,2),
+   isbn text unique,
+   primary key (id)
+);
+create table sales(
+   id serial,
+   customer_id integer references customers(id),
+   book_id integer references books(id),
+   primary key (id)
+);</code></pre>
+   <p>
+    Note that both the customers table and the
+        books table have fields that are constrained to
+        be unique. The customers.e_mail field must be unique
+        and the books.isbn field must also be a
+        unique value. This will help in coming up
+        with functions to populate the tables. Here is
+        the file "insert_funcs.sql" that will contain the plpgsql
+        functions for populating all three database tables.
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- insert_funcs.sql
+create or replace function add_customer(_fn text, _ln text, _email text)
+   returns integer as
+   $func$
+      declare
+         _cust_id integer;
+         rec record;
+      begin
+         select * into rec from customers where e_mail=_email;
+         if not found then
+            insert into customers (first_name, last_name, e_mail) 
+               values (_fn, _ln, _email);
+            _cust_id := currval('customers_id_seq');
+         else
+            _cust_id := rec.id;
+         end if;
+         return _cust_id;
+      end;
+   $func$
+   language 'plpgsql';
+
+create or replace function add_book(_title text, _author text,
+   _price decimal(6,2), _isbn text)
+   returns integer as
+   $func$
+      declare
+         _book_id integer;
+         rec record;
+      begin
+         select * into rec from books where isbn=_isbn;
+         if not found then
+            insert into books (title, author, price, isbn) 
+               values (_title, _author, _price, _isbn);
+            _book_id := currval('books_id_seq');
+         else
+            _book_id := rec.id;
+         end if;
+         return _book_id;
+      end;
+   $func$
+   language 'plpgsql';
+
+create or replace function add_sale(_fn text, _ln text, _email text,
+   _title text, _author text, _price decimal(6,2), _isbn text)
+   returns boolean as
+   $func$
+      declare
+         _cust_id integer;
+         _book_id integer;
+      begin
+         _cust_id := add_customer(_fn, _ln, _email);
+         _book_id := add_book(_title,_author,_price,_isbn);
+         insert into sales (customer_id, book_id) values
+            (_cust_id, _book_id);
+         return 't';
+      end;
+   $func$
+   language 'plpgsql';</code></pre>
+   <p>
+    Lines 2-20 define the
+    <b>
+     add_customer()
+    </b>
+    function. On line
+        2, note that the names of the parameters
+        on the parameter list all begin with an
+        underscore (
+    <b>
+     _
+    </b>
+    ). That is to ensure that no
+        parameter names match field names from the database.
+        Of course, this means that you don't want
+        to start any field names for database tables
+        with an underscore. Line 3 specifies that this
+        function will return an integer. In this case,
+        the integer that will be returned will be
+        the customer id.
+   </p>
+   <p>
+    Lines 4-19 enclose the body of the function.
+        Lines 5-7 define the declaration block where two
+        local variables are declared. Line 6 declares
+    <b>
+     _cust_id
+    </b>
+    to be of type
+    <b>
+     integer
+    </b>
+    . Line 7 declares
+    <b>
+     rec
+    </b>
+    to be of type
+    <b>
+     record
+    </b>
+    (record set
+        or row). Lines 8-18 define the executable part
+        of the function. Line 9 performs a select
+        query that selects all fields into
+    <b>
+     rec
+    </b>
+    from
+        the customers table where
+    <b>
+     e_mail
+    </b>
+    matches the passed
+    <b>
+     _email
+    </b>
+    value. Lines 11-13 are executed if the
+        e_mail is not found for any of the
+        existing customers. Since the e_mail is not found,
+        the customer does not exist and so lines
+        11-12 insert the customer values into the customers
+        table. Line 13 stores the newly created customers
+        id in
+    <b>
+     _cust_id
+    </b>
+    .
+   </p>
+   <p>
+    If the customer already exists, line 15 is
+        executed to store the existing customer's id in
+    <b>
+     _cust_id
+    </b>
+    . Line 17 returns the customers id. By
+        creating the cases for the selection statement in
+        this way, the customer values are only inserted
+        if the customer does not already exist. If
+        the customer exists, no insert query is run.
+        This will make sure that trying to insert
+        the same customer more than once will not
+        put gaps into the customer id values.
+   </p>
+   <p>
+    Lines 22-41 define the
+    <b>
+     add_book()
+    </b>
+    function. This function
+        is set up in a similar manner to
+        the
+    <b>
+     add_customer()
+    </b>
+    function. Line 30 attempts to select
+        a record from books where the isbn value
+        already exists. If the isbn does not exist,
+        then lines 32-33 will insert the new book
+        and line 34 will store the new book's
+        id in
+    <b>
+     _book_id
+    </b>
+    . If the books already exists,
+        line 36 stores the existing book id in
+    <b>
+     _book_id
+    </b>
+    . Line 38 returns the book's id. Just
+        as with the
+    <b>
+     add_customer()
+    </b>
+    function, the
+    <b>
+     add_book()
+    </b>
+    function
+        will not add a book more than once.
+   </p>
+   <p>
+    Lines 43-58 define the
+    <b>
+     add_sale()
+    </b>
+    function. This function
+        will call both the
+    <b>
+     add_customer()
+    </b>
+    function and the
+    <b>
+     add_book()
+    </b>
+    function. That will allow adding the customer
+        and the book at the same time and
+        obtaining the correct
+    <b>
+     customer_id
+    </b>
+    and
+    <b>
+     book_id
+    </b>
+    to insert
+        into the sales table. In addition, there is
+        no need to worry about adding a customer
+        or a book more than once because of
+        the way the
+    <b>
+     add_customer()
+    </b>
+    and
+    <b>
+     add_book()
+    </b>
+    functions are
+        written.
+   </p>
+   <p>
+    Lines 43-44 define the parameter list to include
+        all the parameter for both a customer and
+        the book the customer is buying. Line 51
+        calls the
+    <b>
+     add_customer()
+    </b>
+    function. The
+    <b>
+     add_customer()
+    </b>
+    function will
+        add the customer if necessary and obtain the
+        correct value for the
+    <b>
+     customer_id
+    </b>
+    . Line 52 calls
+        the
+    <b>
+     add_book()
+    </b>
+    function so that the book is
+        added to the books table if necessary and
+        obtain the correct value for the
+    <b>
+     book_id
+    </b>
+    . Lines
+        53-54 perform the final insert into the sales
+        table. Line 55 returns a 't' to indicate
+        success.
+   </p>
+   <p>
+    Now, we can make a SQL script called
+        "add_initial_data.sql" that adds in the initial data in
+        a way that is easy to understand:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- add_initial_data.sql
+select add_sale('Jane','Doe','janedoe@gmail.com','The Cat in the Hat',
+   'Dr. Seuss',6.99,'111111');
+select add_sale('Jane','Doe','janedoe@gmail.com','Go Dog Go',
+   'P.D. Eastman',7.95,'111112');
+select add_sale('Jane','Doe','janedoe@gmail.com','Prey',
+   'Michael Crichton',11.95,'111113');
+select add_sale('John','Doe','johndoe@gmail.com','Go Dog Go',
+   'P.D. Eastman',7.95,'111112');
+select add_sale('John','Doe','johndoe@gmail.com','Prey',
+   'Michael Crichton',11.95,'111113');
+select add_sale('Bill','Gates','billg@hotmail.com','The Cat in the Hat',
+   'Dr. Seuss',6.99,'111111');
+select add_sale('Bill','Gates','billg@hotmail.com','Prey',
+   'Michael Crichton',11.95,'111113');</code></pre>
+   <p>
+    The
+    <b>
+     add_sale()
+    </b>
+    function makes it easy to insert
+        this unnormalized data without having to worry about
+        any customer ids or book ids. Using
+    <b>
+     add_sale()
+    </b>
+    will cause the data to be inserted in
+        a normalized fashion even if the values being
+        passed are not normalized.
+   </p>
+   <p>
+    To view the sales data, we need to
+        create a view that joins the tables. Here
+        is the file "add_view.sql" that accomplishes this.
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- add_view.sql
+create or replace view sales_view as
+   select customers.first_name, customers.last_name, 
+   customers.e_mail, books.title, books.author, books.price,
+   books.isbn from customers join sales on 
+   customers.id=sales.customer_id join books on
+   sales.book_id=books.id;</code></pre>
+   <p>
+    So, from within the database you run the
+        following scripts:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+\i init.sql
+\i insert_funcs.sql
+\i add_initial_data.sql
+\i add_view.sql</code></pre>
+   <p>
+    Then, when you can run the following query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+select * from sales_view;
+first_name | last_name |      e_mail       |       title        |      author      | price | isbn 
+-----------+-----------+-------------------+--------------------+------------------+-------+--------
+Jane       | Doe       | janedoe@gmail.com | The Cat in the Hat | Dr. Seuss        | 6.99 | 111111
+Jane       | Doe       | janedoe@gmail.com | Go Dog Go          | P.D. Eastman     | 7.95 | 111112
+Jane       | Doe       | janedoe@gmail.com | Prey               | Michael Crichton | 11.95 | 111113
+John       | Doe       | johndoe@gmail.com | Go Dog Go          | P.D. Eastman     | 7.95 | 111112
+John       | Doe       | johndoe@gmail.com | Prey               | Michael Crichton | 11.95 | 111113
+Bill       | Gates     | billg@hotmail.com | The Cat in the Hat | Dr. Seuss        | 6.99 | 111111
+Bill       | Gates     | billg@hotmail.com | Prey               | Michael Crichton | 11.95 | 111113
+(7 rows)</code></pre>
+   <h4>
+    Returning calculated values along with text
+   </h4>
+   <p>
+    Suppose you have a database that is used
+        to support a simple survey. The survey has
+        four questions that are rated from 1-3 with
+        1 being disagree, 2 being neutral and 3
+        being agree. The results are stored in single
+        table that has the question text and the
+        counts for the number of 1s the number
+        of 2s and the number of 3s.
+   </p>
+   <p>
+    Here is an "init.sql" that is used for
+        this database:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+drop table if exists results cascade;
+create table results(
+   id serial,
+   question_text text,
+   num1 integer,
+   num2 integer,
+   num3 integer,
+   primary key (id)
+);
+
+insert into results (question_text, num1, num2, num3) values
+   ('I like ice cream',0,1,8);
+insert into results (question_text, num1, num2, num3) values
+   ('I like broccoli',8,0,1);
+insert into results (question_text, num1, num2, num3) values
+   ('I like bananas',2,4,3);
+insert into results (question_text, num1, num2, num3) values
+   ('I like carrot juice',3,5,1);</code></pre>
+   <p>
+    Here is a file "query_funcs.sql" that uses a
+        plpgsql function to calculate the average score and
+        return the question text and average score:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+drop type if exists mytype cascade;
+create type mytype as (question_text text, average float);
+
+create or replace function get_results()
+   returns setof mytype as
+   $func$
+      declare
+         rec record;
+         _avg float;
+         _top float;
+         _bottom float;
+      begin
+         for rec in
+            select * from results
+            loop
+               _top := 1.0*rec.num1 + 2.0*rec.num2 + 3.0*rec.num3;
+               _bottom := rec.num1 + rec.num2 + rec.num3;
+               _avg := round((_top/_bottom)::numeric,2);
+               return next (rec.question_text, _avg);
+            end loop;
+      end;
+   $func$
+   language 'plpgsql';</code></pre>
+   <p>
+    Line 1 drops the custom datatype called
+    <b>
+     mytype
+    </b>
+    .
+        This is so that if we have to
+        include "query_funcs.sql" again, line 2 where
+    <b>
+     mytype
+    </b>
+    is
+        created will run without error. On line 2,
+        we declare
+    <b>
+     mytype
+    </b>
+    to be a row that
+        has two columns:
+   </p>
+   <p>
+    create type mytype as (question_text text, average float);
+   </p>
+   <p>
+    This means that
+    <b>
+     mytype
+    </b>
+    will be a row
+        (record) with the first column being named
+    <b>
+     question_text
+    </b>
+    and being of type
+    <b>
+     text
+    </b>
+    . The second column
+        of
+    <b>
+     mytype
+    </b>
+    is named
+    <b>
+     average
+    </b>
+    and average is
+        of type
+    <b>
+     float
+    </b>
+    .
+   </p>
+   <p>
+    Lines 4-23 define the
+    <b>
+     get_results()
+    </b>
+    plpgsql function. For
+        this simple database, the
+    <b>
+     get_results()
+    </b>
+    function is parameterless,
+        but for a real database holding survey data,
+        the parameter list would normally consist of a
+        survey_id of type integer.
+   </p>
+   <p>
+    Line 5 specifies that
+    <b>
+     get_results()
+    </b>
+    will return a
+    <b>
+     setof
+    </b>
+    <b>
+     mytype
+    </b>
+    . This means that get_results() can return
+        several rows of type
+    <b>
+     mytype
+    </b>
+    .
+   </p>
+   <p>
+    Lines 7-11 declare the local variables used for
+        this function. Line 8 declares
+    <b>
+     rec
+    </b>
+    to be
+        of type record. The variable
+    <b>
+     rec
+    </b>
+    will be
+        used to hold the row returned from the
+        query set up on line 14. On line
+        8 the variable
+    <b>
+     _avg
+    </b>
+    is declared to be
+        of type float. The _avg variable will be
+        used to hold the average score for a
+        survey question. Lines 10 and 11 declare the
+    <b>
+     _top
+    </b>
+    and
+    <b>
+     _bottom
+    </b>
+    variables to be of type
+        float. The
+    <b>
+     _top
+    </b>
+    variable will be used to
+        hold the numerator and
+    <b>
+     _bottom
+    </b>
+    will be used
+        to hold the denominator for the weighted average
+        score.
+   </p>
+   <p>
+    Lines 13-20 set up a for loop that
+        will be used to calculate the weighted average
+        score and return the question text along with
+        the average. Lines 13-14 initialize the for loop
+        with the loop variable,
+    <b>
+     rec
+    </b>
+    , taking on one
+        of the rows returned from the query "select
+        * from results" on line 14. Lines 15-20
+        define the body of the for loop. Line
+        16 calculates the top part of the weighted
+        average by multiplying the weight by the number
+        of occurrences for each number choice. Line 17
+        calculates the bottom part of the weighted average
+        by totaling up the number of votes. Line
+        18 uses the
+    <b>
+     round()
+    </b>
+    function to round of
+        the quotient to 2 digits after the decimal
+        point. The quotient must be cast to the
+    <b>
+     numeric
+    </b>
+    type, because that is the type that
+        the
+    <b>
+     round()
+    </b>
+    function expects. Finally, line 19 uses
+        the
+    <b>
+     return next
+    </b>
+    clause to return the row
+        (of question_text and average) without ending the function.
+        That is,
+    <b>
+     return next
+    </b>
+    , will continue to return
+        a record until the for loop completes. So,
+    <b>
+     return next
+    </b>
+    , is what you use to return
+        a row (without ending the function) when the
+        plpgsql function return type is
+    <b>
+     setof
+    </b>
+    .
+   </p>
+   <p>
+    As can be seen on line 19, the
+        returned row consists of the question text followed
+        by the average.
+   </p>
+   <p>
+    If you include "myfuncs.sql" into the database, you
+        can run the following query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+select * from get_results();
+    question_text   | average 
+--------------------+---------
+I like ice cream    |    2.89
+I like broccoli     |    1.22
+I like bananas      |    2.11
+I like carrot juice |    1.78
+(4 rows)</code></pre>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective5.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:44 GMT -->
+</html>

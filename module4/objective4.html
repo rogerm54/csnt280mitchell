@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective4.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 4.4 - Deleting data using a SQL query
+   </h2>
+   <h3>
+    Dropping a table
+   </h3>
+   <p>
+    Sometimes you need to drop an entire table.
+        Usually, you do this by running your "init.sql"
+        script as that drops all the tables before
+        recreating the tables. But, if you just want
+        to drop a single table without recreating it,
+        the syntax is:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+drop table &lt;tablename&gt; [if exists] [cascade];</code></pre>
+   <p>
+    The optional,
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+if exists</code></pre>
+   <p>
+    is useful if you are running a SQL
+        script to drop the table. If the table
+        does not exist, you will get a NOTICE,
+        but you won't get an ERROR.
+   </p>
+   <p>
+    the optional clause,
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+cascade</code></pre>
+   <p>
+    will cause any objects (tables, views, sequences) that
+        depend on the table to be dropped as
+        well.
+   </p>
+   <h3>
+    Deleting records from a table
+   </h3>
+   <p>
+    The basic syntax for deleting a record is
+        this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+delete from &lt;tablename&gt; where &lt;condition&gt;;</code></pre>
+   <p>
+    If you don't specify the
+    <b>
+     where
+    </b>
+    clause, all
+        the records from that table will be deleted.
+        Consider the "bookstore_db" database that was created earlier.
+        Here is the "bookstore_init.sql" script that was used
+        to initialize that database:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- bookstore_init.sql
+drop table if exists books cascade;
+drop table if exists customers cascade;
+drop table if exists sales cascade;
+
+create table books (
+   id serial,
+   title varchar(100),
+   author varchar(100),
+   price decimal(6,2),
+   primary key (id)
+);
+
+create table customers (
+   id serial,
+   first_name varchar(30),
+   last_name varchar(40),
+   primary key (id)
+);
+
+create table sales (
+   id serial,
+   customer_id integer references customers(id),
+   book_id integer references books(id),
+   primary key (id)
+);
+
+create or replace view sales_view as
+   select customers.id as cid, customers.first_name,
+   customers.last_name, books.id as bk_id,
+   books.title, books.author, books.price from
+   customers join sales on customers.id=sales.customer_id
+   join books on sales.book_id=books.id;</code></pre>
+   <p>
+    These tables were populated using the SQL script,
+        "add_initial_data.sql" shown next:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+insert into customers (id, first_name,last_name) values
+   (1, 'Jane','Doe');
+insert into customers (id, first_name,last_name) values
+   (2, 'John','Doe');
+insert into customers (id, first_name,last_name) values
+   (3, 'Bill','Gates');
+
+insert into books (id, title,author,price) values
+   (1, 'Go Dog Go','P.D. Eastman',7.99);
+insert into books (id, title,author,price) values
+   (2, 'The Cat in the Hat','Dr. Seuss',8.99);
+insert into books (id, title,author,price) values
+   (3, 'Ender''s Game','Orson Scott Card',9.99);
+
+insert into sales (customer_id,book_id) values (1,1);
+insert into sales (customer_id,book_id) values (1,2);
+insert into sales (customer_id,book_id) values (2,1);
+insert into sales (customer_id,book_id) values (2,3);
+insert into sales (customer_id,book_id) values (3,1);
+insert into sales (customer_id,book_id) values (3,2);
+insert into sales (customer_id,book_id) values (3,3);</code></pre>
+   <p>
+    As a reminder, if we look at the
+    <b>
+     sales_view
+    </b>
+    view, it currently looks like this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view;
+ cid | first_name | last_name | bk_id |       title        |      author      | price 
+-----+------------+-----------+-------+--------------------+------------------+-------
+   1 | Jane       | Doe       |     1 | Go Dog Go          | P.D. Eastman     | 7.99
+   1 | Jane       | Doe       |     2 | The Cat in the Hat | Dr. Seuss        | 8.99
+   2 | John       | Doe       |     1 | Go Dog Go          | P.D. Eastman     | 7.99
+   2 | John       | Doe       |     3 | Ender's Game       | Orson Scott Card | 9.99
+   3 | Bill       | Gates     |     1 | Go Dog Go          | P.D. Eastman     | 7.99
+   3 | Bill       | Gates     |     2 | The Cat in the Hat | Dr. Seuss        | 8.99
+   3 | Bill       | Gates     |     3 | Ender's Game       | Orson Scott Card | 9.99
+(7 rows)</code></pre>
+   <p>
+    Suppose that Jane Doe decides that she wants
+        to return Go Dog Go, we could do
+        this by deleting the appropriate record from the
+    <b>
+     sales
+    </b>
+    table. Unfortunately, when we created the sales_view
+        view, we did not include the
+    <b>
+     id
+    </b>
+    from
+        the sales table. If we had, we could
+        just look up the sales_id from the sales_view.
+   </p>
+   <p>
+    We could look up the id for the
+        sale, but we can also just delete the
+        record by using the correct customer id and
+        book_id. Here is the delete query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+delete from sales where customer_id=1 and book_id=1;</code></pre>
+   <p>
+    Here is the result of running that delete
+        query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; delete from sales where customer_id=1 and book_id=1;
+DELETE 1
+bookstore_db=&gt; select * from sales_view;
+ cid | first_name | last_name | bk_id |       title        |      author      | price 
+-----+------------+-----------+-------+--------------------+------------------+-------
+   1 | Jane       | Doe       |     2 | The Cat in the Hat | Dr. Seuss        | 8.99
+   2 | John       | Doe       |     1 | Go Dog Go          | P.D. Eastman     | 7.99
+   2 | John       | Doe       |     3 | Ender's Game       | Orson Scott Card | 9.99
+   3 | Bill       | Gates     |     1 | Go Dog Go          | P.D. Eastman     | 7.99
+   3 | Bill       | Gates     |     2 | The Cat in the Hat | Dr. Seuss        | 8.99
+   3 | Bill       | Gates     |     3 | Ender's Game       | Orson Scott Card | 9.99
+(6 rows)</code></pre>
+   <p>
+    As you can see in the select query
+        for the sales_view view, the sale of Go
+        Dog Go to Jane Doe is gone.
+   </p>
+   <h4>
+    Deleting a row that other objects depend on
+   </h4>
+   <p>
+    Suppose that Bill Gates made his purchases on
+        a credit card and you found that the
+        credit company refused to pay. So, you need
+        to delete all of those sales. In fact,
+        you are so angry at Bill Gates, that
+        you decide to delete him as a customer.
+        The delete query actually depends on the type
+        of database you are using. For PostgreSQL, you
+        would do something like this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+delete from sales where customer_id=3;
+delete from customers where id=3;</code></pre>
+   <p>
+    In other words, you have to manually delete
+        records so in a way that does not
+        violate any foreign key constraints. If you had
+        just tried to delete the customer without deleting
+        the sales records associated with that customer, you
+        would get a foreign key violation and the
+        delete query would fail. So, here is how
+        you could dump Bill Gates:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; delete from sales where customer_id=3;
+DELETE 3
+bookstore_db=&gt; delete from customers where id=3;
+DELETE 1
+bookstore_db=&gt; select * from customers;
+ id | first_name | last_name 
+----+------------+-----------
+  1 | Jane       | Doe
+  2 | John       | Doe
+(2 rows)
+
+bookstore_db=&gt; select * from sales_view;
+ cid | first_name | last_name | bk_id |       title        |      author      | price 
+-----+------------+-----------+-------+--------------------+------------------+-------
+   1 | Jane       | Doe       |     2 | The Cat in the Hat | Dr. Seuss        | 8.99
+   2 | John       | Doe       |     1 | Go Dog Go          | P.D. Eastman     | 7.99
+   2 | John       | Doe       |     3 | Ender's Game       | Orson Scott Card | 9.99
+(3 rows)</code></pre>
+   <p>
+    As you can see from querying the
+    <b>
+     customers
+    </b>
+    table, Bill Gates has been deleted. And, from
+        the
+    <b>
+     sales_view
+    </b>
+    you can see all the sales
+        associated with Bill Gates are also deleted.
+   </p>
+   <p>
+    Later on, we will discuss NoSQL databases. Deleting
+        records in NoSQL databases will also require manually
+        deleting a record's dependent objects. However, since there
+        are no relations (foreign key constraints), the database
+        software itself will not protect you from messing
+        up the integrity of your data. It is
+        up to you, to main the integrity by
+        performing the corrects steps in the correct order.
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective4.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+</html>

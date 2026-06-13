@@ -1,0 +1,2746 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module8/objective3.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:50 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module8.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+<h2>
+ Objective 8.3 - Creating the front end of a web application that uses Node.js for the back end
+</h2>
+<p>
+ In ther previous two pages,
+ <a href="objective1.html" target="_blank">
+  Setting
+        up the backend database
+ </a>
+ and
+ <a href="objective2.html" target="_blank">
+  Building
+        the middleware to connect a back end database
+        to a web application
+ </a>
+ , a MongoDB database named
+ <b>
+  cars_db
+ </b>
+ was created. Then, some JavaScript scripts that
+        use
+ <b>
+  Express
+ </b>
+ and
+ <b>
+  mongoose
+ </b>
+ were created to provide
+        the middleware between that database and our web
+        front end. This page will go into developing
+        the front end for our web application.
+</p>
+<h3>
+ Serving out our web application
+</h3>
+<p>
+ To serve out our web application during development,
+        we can make use of a HTTP server
+        that is provided by the npm package, http-server.
+        If this package is not already installed on
+        your computer, you can install it using the
+        following command:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+npm install -g http-server</code></pre>
+<p>
+ The
+ <b>
+  -g
+ </b>
+ switch will install this package globally
+        so that you can run
+ <b>
+  http-server
+ </b>
+ from the
+        command line in any directory.
+</p>
+<h3>
+ Creating a barebones web front end
+</h3>
+<p>
+ We will start with a simple web page
+        that is a good template to use for
+        any JavaScript application:
+</p>
+<pre class="line-numbers" data-line=""><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function init() {
+            console.log('hello');
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ Save this file as "cars_app.html" in your
+ <b>
+  ~/Desktop/node_area/docker_mongo/docs/cars
+ </b>
+ directory. Line 1 declares this as a HTML5
+        page. Lines 3-11 define the &lt;head&gt; element. Line
+        4 specifies the character set to use. Using
+        the UTF-8 character set can block certain attacks
+        that employ putting special characters on a page.
+        Lines 5-10 define a &lt;script&gt; element. This is
+        where your JavaScript code should be stored. Line
+        6 makes it so that the
+ <b>
+  init()
+ </b>
+ function
+        should be called when the DOM content is
+        finished loading. There are a number of JavaScript
+        libraries and frameworks that will not run properly
+        unless they are loaded after the DOM contents
+        have been loaded. So, line 6 along with
+        the
+ <b>
+  init()
+ </b>
+ function will make your HTML files
+        compatible with most commonly used JavaScript libraries and
+        frameworks. Lines 7-9 define the
+ <b>
+  init()
+ </b>
+ function. Line
+        8 will just write 'hello' to the console.
+        Lines 12-13 define the &lt;body&gt; element. Since nothing
+        is placed inside of the &lt;body&gt; element, the
+        main browser window will be empty at this
+        point.
+</p>
+<p>
+ To start up the page, run the following
+        commands to serve this web page out:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_mongo/docs/cars
+$ http-server -a localhost -p 8000</code></pre>
+<p>
+ This will make the http-server serve out the
+        files located in that directory using an IP
+        address of
+ <b>
+  localhost
+ </b>
+ and a port of 8000.
+        Open up Chrome (Chromium or Brave) and navigate
+        to:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+localhost:8000/cars_app.html</code></pre>
+<p>
+ The page will appear blank because we don't
+        have anything inside the &lt;body&gt; element. Hit the
+        F12 key to open up the developer's console.
+        Adjust the settings for the developer's console so
+        that it is placed on the bottom of
+        the window. You should see something like this:
+</p>
+<p>
+ <img alt="screen shot showing hello being displayed
+        in the console" border="1" src="obj3_images/cars_app_initial.png"/>
+</p>
+<p>
+ Let's add a heading inside the &lt;body&gt; element.
+        Here is the new version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="13"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         function init() {
+            console.log('hello');
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new line is line 13. Line 13
+        just adds a &lt;h1&gt; element with "Cars database
+        application" as the contents. If you reload the
+        browser, you will see something like this:
+</p>
+<p>
+ <img alt="screen shot showing a heading1 element
+        added to the page" border="1" src="obj3_images/h1_added.png"/>
+</p>
+<h3>
+ Obtaining Axios
+</h3>
+<p>
+ When we set up the middleware, we implemented
+        a set of REST routes that associate web
+        URLs with functions that interact directly (through mongoose)
+        with the back end database. That middleware exposes
+        those functions through the routes to our front
+        end. So, what we need is a way
+        for our front end to communicate with those
+        routes. This is where
+ <b>
+  Axios
+ </b>
+ comes in.
+</p>
+<p>
+ To get Axios, go to the following site,
+ <a href="https://github.com/axios/axios/tree/master/dist" target="_blank">
+  https://github.com/axios/axios/tree/master/dist
+ </a>
+ and click on "axios.min.js". Click
+        on the
+ <b>
+  Raw
+ </b>
+ table and save the file
+        as "axios.min.js". Place this file inside the same
+        directory (~/Desktop/node_area/docker_mongo/docs/cars) as your "index.js", "queries.js" and "cars_app.html"
+        files.
+</p>
+<p>
+ Let's update "cars_app.html" to make use of
+ <b>
+  Axios
+ </b>
+ :
+</p>
+<pre class="line-numbers" data-line="5,8-19,21"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               console.log(cars.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function init() {
+            getCars();
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are line 5, lines 8-19
+        and line 21. Line 5 makes the
+ <b>
+  axios
+ </b>
+ library available. Lines 8-19 define the
+ <b>
+  getCars()
+ </b>
+ function.
+        Note that this function is declared as an
+ <b>
+  async
+ </b>
+ function. That allows the use of the
+ <b>
+  await
+ </b>
+ operator. Since JavaScript runs asynchronously, the use
+        of
+ <b>
+  await
+ </b>
+ will cause the program to halt
+        until the function being called returns. This allows
+        us to treat that code in a synchronous
+        manner. This is a very important concept in
+        writing web applications that use JavaScript.
+</p>
+<p>
+ Lines 9-15 attempt to make the GET request
+        using
+ <b>
+  axios
+ </b>
+ . Lines 11 and 12 set up
+        that request. Line 11 sets this as a
+        GET request. Line 12 sets
+ <b>
+  url
+ </b>
+ to the
+        route that we have set up previously. Because
+        of the
+ <b>
+  await
+ </b>
+ operator on line 10, line
+        14 will not be executed until the request
+        is completed or an error is thrown. Lines
+        16-18 handle the case that an error is
+        thrown.
+</p>
+<p>
+ Line 21 has been changed to call the
+ <b>
+  getCars()
+ </b>
+ function, instead of just sending 'hello' to
+        the console.
+</p>
+<p>
+ You need to make sure that "index.js" is
+        running using
+ <b>
+  node
+ </b>
+ . So make sure you issue
+        the following command:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_mongo/docs/cars
+$ node index.js</code></pre>
+<p>
+ Open "localhost:8000/cars_app.html in Chrome. You will see the
+        following error:
+</p>
+<p>
+ <img alt="screen shot showing the error generated
+        by the CORS policy" border="1" src="obj3_images/cors_error.png"/>
+</p>
+<h4>
+ Dealing with the CORS policy
+</h4>
+<p>
+ CORS is an acronym for Cross-Origin Resource Sharing.
+        A CORS error means that the browser has
+        blocked resources coming from an origin outside the
+        domain of the server that is serving up
+        the web page. In this case, since we
+        are running the web application from
+ <b>
+  http://localhost:8000
+ </b>
+ , the
+        Axios request is seen as coming from a
+        different origin from the Express server (localhost:3000). One
+        way to deal with this CORS problem is
+        to install another Node.js package called
+ <b>
+  cors
+ </b>
+ .
+</p>
+<p>
+ Stop running "index.js". Make sure that
+ <b>
+  cors
+ </b>
+ has
+        been installed by looking at this file,
+ <b>
+  ~/Desktop/node_area/package.json
+ </b>
+ .
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cat ~/Desktop/node_area/package.json
+{
+  "name": "node_area",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" &amp;&amp; exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongoose": "^5.7.3",
+    "pg": "^7.12.1"
+  }
+}</code></pre>
+<p>
+ If you don't see
+ <b>
+  cors
+ </b>
+ , run the following:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area
+$ npm install cors</code></pre>
+<p>
+ Make the following changes to "index.js":
+</p>
+<pre class="line-numbers" data-line="4,7-9"><code class="language-markup">
+// index.js
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const app = express();
+const db = require("./queries.js");
+app.use(cors({
+   origin: 'http://localhost:8000'
+}));
+app.use(bodyParser.json());
+app.use(
+   bodyParser.urlencoded({
+      extended: true 
+   })
+);
+
+// routes
+app.get('/', function(request, response) {
+   response.send({message: 'Connected via Express and Node.js'}); 
+});
+app.get('/cars', db.getCars);
+app.post('/cars', db.createCar);
+app.get('/cars/:id', db.getCarById);
+app.put('/cars/:id', db.updateCar);
+app.delete('/cars/:id', db.deleteCar);
+// startup server
+app.listen(3000, () =&gt; {
+   console.log('app listening on port 3000'); 
+});</code></pre>
+<p>
+ The new lines are line 4 and lines
+        7-9. Line 4 loads the
+ <b>
+  cors
+ </b>
+ module. Lines
+        7-9 make it so that a relaxation of
+        the CORS policy will be allowed for requests
+        coming from "http://localhost:8000", which is our web application
+        IP address and port. If you don't supply
+        a value for the
+ <b>
+  origin
+ </b>
+ key, then requests
+        from any IP address and port would be
+        allowed. That would not be good from a
+        security standpoint.
+</p>
+<p>
+ Restart "index.js" using
+ <b>
+  node
+ </b>
+ and refresh the browser
+        running "cars_app.html". You should now see this:
+</p>
+<p>
+ <img alt="screen shot showing that the error
+        due to cors is resolved and the cars
+        data is displayed in the console" border="1" src="obj3_images/cors_resolved.png"/>
+</p>
+<p>
+ The array is shown expanded so you can
+        see the car documents. Next, let's add a
+        function that can add a car document. Here
+        is the new version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="20-36,39"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               console.log(cars.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function addCar(make, model, price) {
+            try {
+               await axios({
+                  method: 'post',
+                  url: 'http://localhost:3000/cars',
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function init() {
+            addCar('Toyota','Corolla',24123.99);
+            //getCars();
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are lines 20-36 and line
+        39. Lines 20-36 define the
+ <b>
+  addCar()
+ </b>
+ function. Lines
+        21-32 define a try block that will attempt
+        to add a car document. The
+ <b>
+  await
+ </b>
+ on
+        line 22 will force the call to the
+ <b>
+  getCars()
+ </b>
+ function on line 31to wait until a
+        response arrives. This is why line 39 has
+        been modified to comment out that call since
+        line 39 would be executed before that response
+        was completed. Note on lines 26-28 that the
+        parameter names are the one defined in the
+ <b>
+  createCar()
+ </b>
+ function defined in "queries.js".
+</p>
+<p>
+ If you reload "cars-app.html" in the browser, you
+        will see that the car document was added:
+</p>
+<p>
+ <img alt="screen shot showing a car document
+        was added" border="1" src="obj3_images/car_added.png"/>
+</p>
+<p>
+ Next let's put in a function that can
+        update a car document. Here is the new
+        version of "carsapp.html":
+</p>
+<pre class="line-numbers" data-line="31,37-53,55-57"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               console.log(cars.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function addCar(make, model, price) {
+            try {
+               await axios({
+                  method: 'post',
+                  url: 'http://localhost:3000/cars',
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               //getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function updateCar(id, make, model, price) {
+            try {
+               await axios({
+                  method: 'PUT',
+                  url: `http://localhost:3000/cars/${id}`,
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function init() {
+            updateCar('5dc3881e4c15eb5d98348688','Toyota',
+               'Corolla',25123.99);
+            //addCar('Toyota','Corolla',24123.99);
+            //getCars();
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are line 31, lines 37-53
+        and lines 55-57. Line 31 just comments out
+        the call to getCars() in the addCar() function.
+        Lines 37-53 define the
+ <b>
+  updateCar()
+ </b>
+ function. Lines 38-49
+        attemtp to update a car object specified by
+        the id. Line 41 uses the back tick
+        operators to create a parameterized string. A parameterized
+        string allows substitution of variables using the
+ <b>
+  ${}
+ </b>
+ to enclose the variable names. Lines 43-45 give
+        values to the parameters (note the parameter names
+        must match the parameter names in the updateCar()
+        function defined in "queries.js". Once again, because of
+        the use of the
+ <b>
+  await
+ </b>
+ operator or line
+        39, line 48 does not run until the
+        update is finished.
+</p>
+<p>
+ Lines 55-56 call the
+ <b>
+  updateCar()
+ </b>
+ function. Note that
+        the id value was copied from the console
+        window for the Toyota Corolla. The price is
+        set to be 1,000 dollars higher at 25123.99.
+        Line 57 just comments out the call to
+        add a car.
+</p>
+<p>
+ As can be seen in the screen shot
+        below. this update succeeded:
+</p>
+<p>
+ <img alt="screen shot showing the update car
+        document" border="1" src="obj3_images/update_car.png"/>
+</p>
+<p>
+ Next, let's add a function that can return
+        a car document by id. This will be
+        needed later when we want to retrieve a
+        document so that the document values can be
+        displayed for editing purposes. Here is the new
+        version of "cars_app.html".
+</p>
+<pre class="line-numbers" data-line="54-65,67-69"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               console.log(cars.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function addCar(make, model, price) {
+            try {
+               await axios({
+                  method: 'post',
+                  url: 'http://localhost:3000/cars',
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               //getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function updateCar(id, make, model, price) {
+            try {
+               await axios({
+                  method: 'PUT',
+                  url: `http://localhost:3000/cars/${id}`,
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               //getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+        async function getCarById(id) {
+            try {
+               const car = await axios({
+                  method: 'get',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               console.log(car.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function init() {
+           getCarById('5dc3881e4c15eb5d98348688');
+            //updateCar('5dc3881e4c15eb5d98348688','Toyota',
+            // 'Corolla',25123.99);
+            //addCar('Toyota','Corolla',24123.99);
+            //getCars();
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines arelines 54-65 and lines 67-69.
+        Lines 54-65 define the
+ <b>
+  getCarById()
+ </b>
+ function. Lines 55-61
+        attempt to retrieve a car document. Because of
+        the use of
+ <b>
+  await
+ </b>
+ on line 56, lines
+        60 won't be executed until the response returns.
+        On line 58, the back ticks are used
+        again to create the URL using a parameterized
+        string.
+</p>
+<p>
+ Line 67 calls
+ <b>
+  getCarById()
+ </b>
+ using the Toyota Corolla's
+        id. Lines 68-69 comment out the call to
+        the updateCar() function.
+</p>
+<p>
+ As can be seen in the screen shot
+        below, that car document has been retrieved.
+</p>
+<p>
+ <img alt="screen shot showing a retrieved car
+        document" border="1" src="obj3_images/get_car.png"/>
+</p>
+<p>
+ The last function we need to add is
+        the one that can delete a car object.
+        Here is the new version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="66-77,79-80"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               console.log(cars.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function addCar(make, model, price) {
+            try {
+               await axios({
+                  method: 'post',
+                  url: 'http://localhost:3000/cars',
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               //getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function updateCar(id, make, model, price) {
+            try {
+               await axios({
+                  method: 'PUT',
+                  url: `http://localhost:3000/cars/${id}`,
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               //getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function getCarById(id) {
+            try {
+               const car = await axios({
+                  method: 'get',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               console.log(car.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function deleteCar(id) {
+            try {
+               await axios({
+                  method: 'DELETE',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function init() {
+            deleteCar('5dc3881e4c15eb5d98348688');
+            //getCarById('5dc3881e4c15eb5d98348688');
+            //updateCar('5dc3881e4c15eb5d98348688','Toyota',
+            // 'Corolla',25123.99);
+            //addCar('Toyota','Corolla',24123.99);
+            //getCars();
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are lines 66-77 and lines
+        79-80. Lines 67-77 define the
+ <b>
+  deleteCar()
+ </b>
+ function. Lines
+        67-73 attempt to delete the car object specified
+        by the id. Note on line 69 that
+        the method is set to 'DELETE'. After the
+        response to the delete request returns, line 72
+        displays all of the remaining car documents.
+</p>
+<p>
+ Lines 79 calls the newly added
+ <b>
+  deleteCar()
+ </b>
+ function.
+        Line 80 just comments out the call to
+        getCarById(). As can be seen in the next
+        screen shot, the Toyota Corolla has been deleted:
+</p>
+<p>
+ <img alt="screen shot showing that the car
+        document was deleted" border="1" src="obj3_images/delete_car.png"/>
+</p>
+<h3>
+ Creating the User Interface
+</h3>
+<p>
+ Up until now, we have only been showing
+        the results to the console. That is not
+        going to work for an end user who
+        probably does not even know the developer's console
+        exists. At the same time, by showing the
+        results in the console, you can focus on
+        getting the functions to work before worrying about
+        how to display the results in the window.
+</p>
+<p>
+ The main part of the user interface will
+        be a HTML table that displays all the
+        car documents. Part of this table is created
+        with HTML markup and the rest of the
+        table is created dynamically with JavaScript. This means
+        that the HTML markup for the table must
+        have an id attribute for the part that
+        must be inserted dynamically. Here is the new
+        version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="8,15-17,34,51,75,81-108,110,116-124"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         let car_data = [];
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               //console.log(cars.data);
+               car_data = cars.data;
+               updateCarsTable();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function addCar(make, model, price) {
+            try {
+               await axios({
+                  method: 'post',
+                  url: 'http://localhost:3000/cars',
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function updateCar(id, make, model, price) {
+            try {
+               await axios({
+                  method: 'PUT',
+                  url: `http://localhost:3000/cars/${id}`,
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function getCarById(id) {
+            try {
+               const car = await axios({
+                  method: 'get',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               console.log(car.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function deleteCar(id) {
+            try {
+               await axios({
+                  method: 'DELETE',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function removeChildren(elem) {
+            while (elem.childNodes.length &gt; 0) {
+               elem.removeChild(elem.childNodes[0]);
+            }
+         }
+         function updateCarsTable() {
+            const cars_tbody = document.getElementById('cars_tbody');
+            removeChildren(cars_tbody);
+            for (let i = 0; i &lt; car_data.length; i++) {
+               const car = car_data[i];
+               let id = car._id;
+               let make = document.createTextNode(car.make);
+               let model = document.createTextNode(car.model);
+               let price = document.createTextNode(car.price);
+               let tr = document.createElement('tr');
+               tr.setAttribute('id',id);
+               let td = document.createElement('td');
+               td.appendChild(make);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(model);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(price);
+               tr.appendChild(td);
+               cars_tbody.appendChild(tr);
+            }
+         }
+         function init() {
+            getCars();
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+      &lt;table border="1"&gt;
+         &lt;caption&gt;Cars Table&lt;/caption&gt;
+         &lt;thead&gt;
+            &lt;tr&gt;
+               &lt;th&gt;make&lt;/th&gt; &lt;th&gt;model&lt;/th&gt; &lt;th&gt;price&lt;/th&gt;
+            &lt;/tr&gt;
+         &lt;/thead&gt;
+         &lt;tbody id="cars_tbody"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are line 8, lines 15-17,
+        line 34, line 51, line 75, lines 81-85,
+        lines 86-108, line 110 and lines 116-124. Line
+        8 declares an array called
+ <b>
+  car_data
+ </b>
+ . This array
+        will be used to hold the car documents
+        returned when the
+ <b>
+  getCars()
+ </b>
+ function is called. Line
+        15 comments out the printing of the array
+        of car documents. Line 16 sets the
+ <b>
+  car_data
+ </b>
+ array to be the array returned in the
+        response to the get request that should return
+        all car documents. Line 17 calls the
+ <b>
+  updateCarsTable()
+ </b>
+ function that is defined on lines 86-108. The
+ <b>
+  updateCarsTable()
+ </b>
+ function is responsible for creating the table
+        elements for the HTML table that displays the
+        car documents. Because of the
+ <b>
+  await
+ </b>
+ operator on
+        line 11, the updateCarsTable() function is called
+ <b>
+  after
+ </b>
+ the data is returned from the server. This
+        guarantees that whenever
+ <b>
+  getCars()
+ </b>
+ is called, the program
+        waits for the data to return from the
+        server before trying to display the cars in
+        the HTML table.
+</p>
+<p>
+ As mentioned in the previous paragraph, the
+ <b>
+  getCars()
+ </b>
+ function is set up to get the results
+        from the database before updating the HTML table.
+        This is why on line 34, line 51
+        and line 75, the
+ <b>
+  getCars()
+ </b>
+ function is called
+        whenever there are changes to the car documents.
+</p>
+<p>
+ Lines 81-85 define the
+ <b>
+  removeChildren()
+ </b>
+ function. The removeChildren()
+        function is used on any container-like element, to
+        remove all that element's children. This is done
+        to prevent the same data from showing up
+        more than once in any element. This function
+        is called on line 88 to make sure
+        that the &lt;tbody&gt; element is cleared out before
+        the car document data is displayed in that
+        table.
+</p>
+<p>
+ Lines 86-108 define the
+ <b>
+  updateCarsTable()
+ </b>
+ function. This is
+        the function that creates the dynamic content for
+        the HTML table. Line 87 gets a reference
+        to the &lt;tbody&gt; element that will hold all
+        the table data rows. Line 88 calls the
+        removeChildren() function to clear out any existing table
+        data rows before the for loop on lines
+        89-107 adds the updated car data. Line 90
+        just stores a car document in the constant
+ <b>
+  car
+ </b>
+ . That will make lines 92-94 a little
+        shorter as this allows using:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+car.make</code></pre>
+<p>
+ instead of
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+car_data[i].make</code></pre>
+<p>
+ Lines 92-94 created text node elements from the
+        make, model and price, respectively. These are appended
+        into the &lt;td&gt; elements on lines 98, 101
+        and 104. Line 96 sets the
+ <b>
+  id
+ </b>
+ attribute
+        for the &lt;tr&gt; element created on line 95.
+        Lines 97-105 just create the &lt;td&gt; elements that
+        get appended into the &lt;tr&gt; element. Finally, line
+        106 appends the &lt;tr&gt; element into the &lt;tbody&gt;
+        element.
+</p>
+<p>
+ Line 110 just calls the
+ <b>
+  getCars()
+ </b>
+ function so
+        that when the web page is loaded, the
+        HTML table is updated.
+</p>
+<p>
+ Lines 116-124 are the HTML markup used to
+        create a HTML table. Lines 117 adds a
+        caption that will be displayed right above the
+        table. Lines 119-121 define a header row for
+        the table. Finally, on line 123, a &lt;tbody&gt;
+        element is given an
+ <b>
+  id="cars_tbody"
+ </b>
+ so that the
+ <b>
+  updateCarsTable()
+ </b>
+ function can easily locate where the data
+        goes into the table.
+</p>
+<p>
+ The following screen shot shows what the page
+        looks like when viewed in a browser.
+</p>
+<p>
+ <img alt="screen shot showing a HTML table
+        being used to display the cars documents" border="1" src="obj3_images/cars_table_initial.png"/>
+ .
+</p>
+<h3>
+ Adding a car
+</h3>
+<p>
+ Let's add in some code that will allow
+        adding in a car document. Here is the
+        new version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="109-115,118-121,127-135"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         let car_data = [];
+         async function getCars() {
+            try {
+               const cars = await axios({
+                  method: 'get',
+                  url: 'http://localhost:3000/cars'
+               });
+               //console.log(cars.data);
+               car_data = cars.data;
+               updateCarsTable();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function addCar(make, model, price) {
+            try {
+               await axios({
+                  method: 'post',
+                  url: 'http://localhost:3000/cars',
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function updateCar(id, make, model, price) {
+            try {
+               await axios({
+                  method: 'PUT',
+                  url: `http://localhost:3000/cars/${id}`,
+                  data: {
+                     car_make: make,
+                     car_model: model,
+                     car_price: price
+                  }
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function getCarById(id) {
+            try {
+               const car = await axios({
+                  method: 'get',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               console.log(car.data);
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         async function deleteCar(id) {
+            try {
+               await axios({
+                  method: 'DELETE',
+                  url: `http://localhost:3000/cars/${id}`
+               });
+               getCars();
+            }
+            catch (error) {
+               console.log(error);
+            }
+         }
+         function removeChildren(elem) {
+            while (elem.childNodes.length &gt; 0) {
+               elem.removeChild(elem.childNodes[0]);
+            }
+         }
+         function updateCarsTable() {
+            const cars_tbody = document.getElementById('cars_tbody');
+            removeChildren(cars_tbody);
+            for (let i = 0; i &lt; car_data.length; i++) {
+               const car = car_data[i];
+               let id = car._id;
+               let make = document.createTextNode(car.make);
+               let model = document.createTextNode(car.model);
+               let price = document.createTextNode(car.price);
+               let tr = document.createElement('tr');
+               tr.setAttribute('id',id);
+               let td = document.createElement('td');
+               td.appendChild(make);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(model);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(price);
+               tr.appendChild(td);
+               cars_tbody.appendChild(tr);
+            }
+         }
+         function handleAddCar() {
+            const make = document.getElementById("add_make");
+            const model = document.getElementById("add_model");
+            const price = document.getElementById("add_price");
+            addCar(make.value.trim(), model.value.trim(),
+               price.value.trim());
+         }
+         function init() {
+            getCars();
+            const add_car_button = document.getElementById(
+               "add_car_button");
+            add_car_button.addEventListener('click',
+               handleAddCar);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+      &lt;div id="add_car_div"&gt;
+         Make:
+         &lt;input id="add_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="add_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="add_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="add_car_button"&gt;Add&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;table border="1"&gt;
+         &lt;caption&gt;Cars Table&lt;/caption&gt;
+         &lt;thead&gt;
+            &lt;tr&gt;
+               &lt;th&gt;make&lt;/th&gt; &lt;th&gt;model&lt;/th&gt; &lt;th&gt;price&lt;/th&gt;
+            &lt;/tr&gt;
+         &lt;/thead&gt;
+         &lt;tbody id="cars_tbody"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are lines 109-115, lines 118-121
+        and lines 127-135. Lets start with the changes
+        to the HTML markup on lines 127-135. Lines
+        127-135 define a &lt;div&gt; element that will contain
+        the &lt;input&gt; elements used to enter a car's
+        make, model and price. Line 129 defines an
+        &lt;input&gt; element with an
+ <b>
+  id="add_make"
+ </b>
+ attribute. The
+ <b>
+  id
+ </b>
+ is needed because we will use JavaScript to
+        read the value stored in that text box.
+        Line 131 adds a similar element for reading
+        in the car's model, and line 133 adds
+        a similar element for reading in a car's
+        price. Line 134 adds in a button with
+        an
+ <b>
+  id="add_car_button"
+ </b>
+ attribute. In the
+ <b>
+  init()
+ </b>
+ function, lines
+        118-119 get a reference to this button. Lines
+        120-121 associate the
+ <b>
+  handleAddCar()
+ </b>
+ function with the event
+        generated when the user clicks on this button.
+</p>
+<p>
+ Lines 109-115 define the
+ <b>
+  handleAddCar()
+ </b>
+ function. Lines 110
+        -112, get references to the text boxes for
+        the make, model and price, respectively. Lines 113-114
+        call the
+ <b>
+  addCar()
+ </b>
+ function with the values from
+        those text boxes to add a car document.
+        The
+ <b>
+  handleAddCar()
+ </b>
+ function is simple to write, because
+        it makes use of the
+ <b>
+  addCar()
+ </b>
+ function.
+</p>
+<p>
+ The screen shot below shows the result of
+        adding in a new car document:
+</p>
+<p>
+ <img alt="screen shot showing a new car
+        document added" border="1" src="obj3_images/new_car_added.png"/>
+</p>
+<h4>
+ Moving some code into another source file
+</h4>
+<p>
+ The length of "cars_app.html" is now 146 lines.
+        To reduce the size, let's move the code
+        for the functions that involve axios calls to
+        another file. Although we will make some changes
+        to the
+ <b>
+  getCarById()
+ </b>
+ function when we add the
+        ability to edit a car document, most of
+        that code will remain unchanged. Here is the
+        contents of the file "cars_axios.js":
+</p>
+<pre class="line-numbers" data-line=""><code class="language-markup">
+async function getCars() {
+   try {
+      const cars = await axios({
+         method: 'get',
+         url: 'http://localhost:3000/cars'
+      });
+      //console.log(cars.data);
+      car_data = cars.data;
+      updateCarsTable();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function addCar(make, model, price) {
+   try {
+      await axios({
+         method: 'post',
+         url: 'http://localhost:3000/cars',
+         data: {
+            car_make: make,
+            car_model: model,
+            car_price: price
+         }
+      });
+      getCars();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function updateCar(id, make, model, price) {
+   try {
+      await axios({
+         method: 'PUT',
+         url: `http://localhost:3000/cars/${id}`,
+         data: {
+            car_make: make,
+            car_model: model,
+            car_price: price
+         }
+      });
+      getCars();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function getCarById(id) {
+   try {
+      const car = await axios({
+         method: 'get',
+         url: `http://localhost:3000/cars/${id}`
+      });
+      console.log(car.data);
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function deleteCar(id) {
+   try {
+      await axios({
+         method: 'DELETE',
+         url: `http://localhost:3000/cars/${id}`
+      });
+      getCars();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}</code></pre>
+<p>
+ With these functions moved into "cars_axios.js", this is
+        the new version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="6"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script src="cars_axios.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         let car_data = [];
+         function removeChildren(elem) {
+            while (elem.childNodes.length &gt; 0) {
+               elem.removeChild(elem.childNodes[0]);
+            }
+         }
+         function updateCarsTable() {
+            const cars_tbody = document.getElementById('cars_tbody');
+            removeChildren(cars_tbody);
+            for (let i = 0; i &lt; car_data.length; i++) {
+               const car = car_data[i];
+               let id = car._id;
+               let make = document.createTextNode(car.make);
+               let model = document.createTextNode(car.model);
+               let price = document.createTextNode(car.price);
+               let tr = document.createElement('tr');
+               tr.setAttribute('id',id);
+               let td = document.createElement('td');
+               td.appendChild(make);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(model);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(price);
+               tr.appendChild(td);
+               cars_tbody.appendChild(tr);
+            }
+         }
+         function handleAddCar() {
+            const make = document.getElementById("add_make");
+            const model = document.getElementById("add_model");
+            const price = document.getElementById("add_price");
+            addCar(make.value.trim(), model.value.trim(),
+               price.value.trim());
+         }
+         function init() {
+            getCars();
+            const add_car_button = document.getElementById(
+               "add_car_button");
+            add_car_button.addEventListener('click',
+               handleAddCar);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+      &lt;div id="add_car_div"&gt;
+         Make:
+         &lt;input id="add_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="add_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="add_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="add_car_button"&gt;Add&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;table border="1"&gt;
+         &lt;caption&gt;Cars Table&lt;/caption&gt;
+         &lt;thead&gt;
+            &lt;tr&gt;
+               &lt;th&gt;make&lt;/th&gt; &lt;th&gt;model&lt;/th&gt; &lt;th&gt;price&lt;/th&gt;
+            &lt;/tr&gt;
+         &lt;/thead&gt;
+         &lt;tbody id="cars_tbody"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The line that includes the functions in "cars_axios.js"
+        is line 6. That's less lines to deal
+        with and it makes it easy to find
+        and work on any functions that use axios
+        calls.
+</p>
+<h4>
+ Using a pseudo dialog box for adding a car
+</h4>
+<p>
+ The user interface for our web application looks
+        cluttered with the form for adding a car
+        document right above the table. It would be
+        nice to have that form in a dialog
+        box to keep the interface more clean. We
+        can simulate a dialog box using some CSS.
+        Here is the file "car_apps.css" that will be
+        used as an external CSS file for the
+        "cars_app.html" application:
+</p>
+<pre class="line-numbers" data-line="" data-start="add_car_div {"><code class="language-markup">
+#add_car_div {
+   display: none;
+   position: fixed;
+   width: 300px;
+   height: 100px;
+   border: black solid 2px;
+   border-radius: 7px;
+   padding: 20px;
+   background: #eeeeee;
+   z-index: 1;
+   line-height: 1.5;
+}
+#white_background {
+   display: none;
+   position: fixed;
+   top: 0px;
+   left: 0px;
+   width: 100%;
+   height: 100%;
+   background: #fefefe;
+   z-index: 1;
+   opacity: 0.6;
+}</code></pre>
+<p>
+ Line 2 makes it so that everything in
+        that &lt;div&gt; with an
+ <b>
+  id="add_car_div"
+ </b>
+ will be normally
+        hidden. When we want this "dialog box" to
+        pop up we will set
+ <b>
+  display
+ </b>
+ to "block"
+        instead of "none". Line 3 sets the position
+        to "fixed". This means that if the page
+        is scrolled, this &lt;div&gt; will stay in the
+        same place in the browser window. You could
+        scroll the background contents behind the dialog box,
+        but the dialog box will remain in the
+        same position. Lines 4 and 5 set the
+        width and height of the dialog box. Lines
+        6 will set a black border that is
+        2 pixels thick and line 7 will give
+        that border rounded corners with a radius of
+        7 pixels. Line 8 will attempt to place
+        20 pixels of padding around the contents of
+        the &lt;div&gt;. Line 9 sets the background color
+        to #eeeeee, a light gray color. Line 10
+        will make this &lt;div&gt; show up in front
+        of the rest of the page. Line 11
+        will make the line spacing a little bigger
+        so the form elements are spaced further apart
+        vertically.
+</p>
+<p>
+ Lines 13-23 set the styles for the &lt;div&gt;
+        element with an
+ <b>
+  id="white_background"
+ </b>
+ . This &lt;div&gt; will fill
+        the entire window with a color of #fefefe,
+        or almost white. The purpose for this &lt;div&gt;
+        is to cover up the rest of the
+        page behind the "dialog box". Note on line
+        22 that the opacity is set to 0.6
+        so you can see through this white background.
+        This white background is displayed when the "dialog
+        box" is displayed.
+</p>
+<p>
+ This CSS file is linked to by the
+        "cars_app.html". Here is the new version of "cars_app.html"
+        that links to the CSS file and adds
+        the changes to make it look like we
+        have a dialog box for adding a car
+        document:
+</p>
+<pre class="line-numbers" data-line="5,39-54,59,69-74,80,88-89,91"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;link href="cars_app.css" rel="stylesheet" type="text/css"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script src="cars_axios.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         let car_data = [];
+         function removeChildren(elem) {
+            while (elem.childNodes.length &gt; 0) {
+               elem.removeChild(elem.childNodes[0]);
+            }
+         }
+         function updateCarsTable() {
+            const cars_tbody = document.getElementById('cars_tbody');
+            removeChildren(cars_tbody);
+            for (let i = 0; i &lt; car_data.length; i++) {
+               const car = car_data[i];
+               let id = car._id;
+               let make = document.createTextNode(car.make);
+               let model = document.createTextNode(car.model);
+               let price = document.createTextNode(car.price);
+               let tr = document.createElement('tr');
+               tr.setAttribute('id',id);
+               let td = document.createElement('td');
+               td.appendChild(make);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(model);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(price);
+               tr.appendChild(td);
+               cars_tbody.appendChild(tr);
+            }
+         }
+         function showAddDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'block';
+            const add_car_div = document.getElementById(
+               'add_car_div');
+            add_car_div.style.display = 'block';
+         }
+         function hideAddDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'none';
+            const add_car_div = document.getElementById(
+               'add_car_div');
+            add_car_div.style.display = 'none';
+         }
+         function handleAddCar() {
+            const make = document.getElementById("add_make");
+            const model = document.getElementById("add_model");
+            const price = document.getElementById("add_price");
+            hideAddDialog();
+            addCar(make.value.trim(), model.value.trim(),
+               price.value.trim());
+         }
+         function init() {
+            getCars();
+            const add_car_button = document.getElementById(
+               "add_car_button");
+            add_car_button.addEventListener('click',
+               handleAddCar);
+            const add_car_cancel = document.getElementById(
+               "add_car_cancel");
+            add_car_cancel.addEventListener('click',
+               hideAddDialog);
+            const add = document.getElementById("add");
+            add.addEventListener('click',showAddDialog);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+      &lt;div id="white_background"&gt;&lt;/div&gt;
+      &lt;div id="add_car_div"&gt;
+         Make:
+         &lt;input id="add_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="add_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="add_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="add_car_button"&gt;OK&lt;/button&gt;
+         &lt;button id="add_car_cancel"&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;button id="add"&gt;Add car&lt;/button&gt;
+      &lt;table border="1"&gt;
+         &lt;caption&gt;Cars Table&lt;/caption&gt;
+         &lt;thead&gt;
+            &lt;tr&gt;
+               &lt;th&gt;make&lt;/th&gt; &lt;th&gt;model&lt;/th&gt; &lt;th&gt;price&lt;/th&gt;
+            &lt;/tr&gt;
+         &lt;/thead&gt;
+         &lt;tbody id="cars_tbody"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are line 5, lines 39-46,
+        lines 47-54, line 59, lines 69-74, line 80.
+        lines 88-89 and line 91. Let's discuss the
+        changes to the HTML markup first. Line 80
+        adds the &lt;div&gt; that will serve as the
+        white background when dialog boxes are displayed. Line
+        88 changes the text that displayed on that
+        button to "OK" (it was "Add"). Line 89
+        adds a cancel button that has an
+ <b>
+  id="add_car_cancel"
+ </b>
+ .
+        This cancel button will allow the user to
+        hit Cancel if she/he decides not to add
+        a car document. Line 91 adds in a
+        new button with an
+ <b>
+  id="add"
+ </b>
+ . This will be
+        the button that the user clicks on to
+        bring up the add car dialog box.
+</p>
+<p>
+ Line 5 links the "cars_app.css" file to this
+        web page.
+</p>
+<p>
+ Lines 39-46 define the
+ <b>
+  showAddDialog()
+ </b>
+ function. Note that
+        lines 73-74 get a reference to the button
+        created on line 91, and associate this button
+        with calling the
+ <b>
+  showAddDialog()
+ </b>
+ function. In the showAddDialog()
+        function, lines 40-41 get a reference to the
+        white background &lt;div&gt; and line 42 makes this
+        white background visible. Lines 43-44 get a reference
+        to the &lt;div that encloses the add car
+        dialog and line 45 makes that &lt;div&gt; visible.
+        So, showAddDialog() will make the add car dialog
+        box appear to pop up.
+</p>
+<p>
+ Lines 47-54 define the
+ <b>
+  hideAddDialog()
+ </b>
+ function. This function
+        just makes it so that the white background
+        and the &lt;div&gt; containing the form for adding
+        a car are hidden. This gives the effect
+        that the dialog box has closed. Note that
+        line 59 adds a call to the hideAddDialog()
+        function so that when the user hits OK
+        when adding a car, the dialog box appears
+        to be dismissed. Lines 69-70 get a reference
+        to the cancel button in the add car
+        dialog. Lines 71-72 associate clicking on that button
+        with the hideAddDialog() function. This means that clicking
+        on that cancel button will appear to close
+        the dialog (without making any changes).
+</p>
+<p>
+ These changes will make it appear like the
+        application uses a dialog box to add a
+        car document. This screen shot shows what the
+        application looks like when the page is reloaded:
+</p>
+<p>
+ <img alt="screen shot showing what the application
+        looks like before the new add car dialog
+        box is displayed" border="1" src="obj3_images/new_add_car.png"/>
+</p>
+<p>
+ As shown above, the user can click on
+        the
+ <b>
+  Add car
+ </b>
+</p>
+to bring up the add
+        car dialog. This is what the screen will
+        show when that happens:
+<p>
+ <img alt="screen shot showing the dialog box
+        to add a car" border="1" src="obj3_images/add_car_dialog_appears.png"/>
+</p>
+<p>
+ Note how you can see through the white
+        background because the opacity of that white background
+        is set to 0.6 in the CSS styles.
+        The user has entered the values for a
+        new car document. If the user hits the
+        "OK" button, the car document will be added
+        as shown next:
+</p>
+<p>
+ <img alt="screen shot showing the honda civic
+        was added" border="1" src="obj3_images/honda_civic_added.png"/>
+</p>
+<h3>
+ Editing a car document
+</h3>
+<p>
+ Now that we can add a car, let's
+        set things up so that we can edit
+        a car document. We start by making a
+        change to "car_axios.js". We want to modify the
+ <b>
+  getCarById()
+ </b>
+ function in that file. Here is the
+        new version of "car_axios.js":
+</p>
+<pre class="line-numbers" data-line="55-56"><code class="language-markup">
+async function getCars() {
+   try {
+      const cars = await axios({
+         method: 'get',
+         url: 'http://localhost:3000/cars'
+      });
+      //console.log(cars.data);
+      car_data = cars.data;
+      updateCarsTable();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function addCar(make, model, price) {
+   try {
+      await axios({
+         method: 'post',
+         url: 'http://localhost:3000/cars',
+         data: {
+            car_make: make,
+            car_model: model,
+            car_price: price
+         }
+      });
+      getCars();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function updateCar(id, make, model, price) {
+   try {
+      await axios({
+         method: 'PUT',
+         url: `http://localhost:3000/cars/${id}`,
+         data: {
+            car_make: make,
+            car_model: model,
+            car_price: price
+         }
+      });
+      getCars();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function getCarById(id) {
+   try {
+      const car = await axios({
+         method: 'get',
+         url: `http://localhost:3000/cars/${id}`
+      });
+      //console.log(car.data);
+      return car.data;
+   }
+   catch (error) {
+      console.log(error);
+   }
+}
+async function deleteCar(id) {
+   try {
+      await axios({
+         method: 'DELETE',
+         url: `http://localhost:3000/cars/${id}`
+      });
+      getCars();
+   }
+   catch (error) {
+      console.log(error);
+   }
+}</code></pre>
+<p>
+ The new lines are lines 55 and 56.
+        Line 55 comments out the display of the
+        car document to the console. Line 56 returns
+        the car document to the calling program so
+        that this data can be used to fill
+        out the edit dialog box.
+</p>
+<p>
+ Next, let's make changes to "cars_app.css" so that
+        we can use a dialog box for editing.
+        We will apply the same styles to the
+        edit dialog box as we applied to the
+        add dialog box. Here is the new version
+        of "cars_app.css":
+</p>
+<pre class="line-numbers" data-line="1"><code class="language-markup">
+#add_car_div, #edit_car_div {
+   display: none;
+   position: fixed;
+   width: 300px;
+   height: 100px;
+   border: black solid 2px;
+   border-radius: 7px;
+   padding: 20px;
+   background: #eeeeee;
+   z-index: 1;
+   line-height: 1.5;
+}
+#white_background {
+   display: none;
+   position: fixed;
+   top: 0px;
+   left: 0px;
+   width: 100%;
+   height: 100%;
+   background: #fefefe;
+   z-index: 1;
+   opacity: 0.6;
+}</code></pre>
+<p>
+ The new line is line 1. All that
+        we do is add on
+ <b>
+  #edit_car_div
+ </b>
+ so that
+        the same styles will be applied to a
+        &lt;div&gt; with an
+ <b>
+  id="edit_car_div
+ </b>
+ attribute. That &lt;div&gt; will
+        be one of the things that we set
+        up in the modified version of "cars_app.html" shown
+        next:
+</p>
+<pre class="line-numbers" data-line="11,28,65-97,108-115,134-144"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;link href="cars_app.css" rel="stylesheet" type="text/css"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script src="cars_axios.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         let car_data = [];
+         let edit_id;
+         function removeChildren(elem) {
+            while (elem.childNodes.length &gt; 0) {
+               elem.removeChild(elem.childNodes[0]);
+            }
+         }
+         function updateCarsTable() {
+            const cars_tbody = document.getElementById('cars_tbody');
+            removeChildren(cars_tbody);
+            for (let i = 0; i &lt; car_data.length; i++) {
+               const car = car_data[i];
+               let id = car._id;
+               let make = document.createTextNode(car.make);
+               let model = document.createTextNode(car.model);
+               let price = document.createTextNode(car.price);
+               let tr = document.createElement('tr');
+               tr.setAttribute('id',id);
+               tr.addEventListener('click',showEditDialog);
+               let td = document.createElement('td');
+               td.appendChild(make);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(model);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(price);
+               tr.appendChild(td);
+               cars_tbody.appendChild(tr);
+            }
+         }
+         function showAddDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'block';
+            const add_car_div = document.getElementById(
+               'add_car_div');
+            add_car_div.style.display = 'block';
+         }
+         function hideAddDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'none';
+            const add_car_div = document.getElementById(
+               'add_car_div');
+            add_car_div.style.display = 'none';
+         }
+         function handleAddCar() {
+            const make = document.getElementById("add_make");
+            const model = document.getElementById("add_model");
+            const price = document.getElementById("add_price");
+            hideAddDialog();
+            addCar(make.value.trim(), model.value.trim(),
+               price.value.trim());
+         }
+         async function showEditDialog(event) {
+            //console.log(event.currentTarget);
+            edit_id = event.currentTarget.id;
+            const car = await getCarById(edit_id);
+            const make = document.getElementById('edit_make');
+            const model = document.getElementById('edit_model');
+            const price = document.getElementById('edit_price');
+            make.value = car.make;
+            model.value = car.model;
+            price.value = car.price;
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'block';
+            const edit_car_div = document.getElementById(
+               'edit_car_div');
+            edit_car_div.style.display = 'block';
+         }
+         function hideEditDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'none';
+            const edit_car_div = document.getElementById(
+               'edit_car_div');
+            edit_car_div.style.display = 'none';
+         }
+         function handleUpdateCar() {
+            const make = document.getElementById('edit_make');
+            const model = document.getElementById('edit_model');
+            const price = document.getElementById('edit_price');
+            updateCar(edit_id, make.value, model.value,
+               price.value);
+            hideEditDialog();
+         }
+         function init() {
+            getCars();
+            const add_car_button = document.getElementById(
+               "add_car_button");
+            add_car_button.addEventListener('click',
+               handleAddCar);
+            const add_car_cancel = document.getElementById(
+               "add_car_cancel");
+            add_car_cancel.addEventListener('click',
+               hideAddDialog);
+            const edit_car_button = document.getElementById(
+               "edit_car_button");
+            edit_car_button.addEventListener('click',
+               handleUpdateCar);
+            const edit_car_cancel = document.getElementById(
+               "edit_car_cancel");
+            edit_car_cancel.addEventListener('click',
+               hideEditDialog);
+            const add = document.getElementById("add");
+            add.addEventListener('click',showAddDialog);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+      &lt;div id="white_background"&gt;&lt;/div&gt;
+      &lt;div id="add_car_div"&gt;
+         Make:
+         &lt;input id="add_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="add_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="add_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="add_car_button"&gt;OK&lt;/button&gt;
+         &lt;button id="add_car_cancel"&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id="edit_car_div"&gt;
+         Make:
+         &lt;input id="edit_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="edit_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="edit_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="edit_car_button"&gt;Update&lt;/button&gt;
+         &lt;button id="edit_car_cancel"&gt;Cancel&lt;/button&gt;
+         &lt;button id="edit_car_delete"&gt;Delete&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;button id="add"&gt;Add car&lt;/button&gt;
+      &lt;table border="1"&gt;
+         &lt;caption&gt;Cars Table&lt;/caption&gt;
+         &lt;thead&gt;
+            &lt;tr&gt;
+               &lt;th&gt;make&lt;/th&gt; &lt;th&gt;model&lt;/th&gt; &lt;th&gt;price&lt;/th&gt;
+            &lt;/tr&gt;
+         &lt;/thead&gt;
+         &lt;tbody id="cars_tbody"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are line 11, line 28,
+        lines 65-81, lines 82-89, lines 90-97, lines 108-115
+        and lines 134-144. Let's start with the changes
+        to the HTML markup on lines 134-144. Lines
+        134-144 define a &lt;div&gt; with an
+ <b>
+  id="edit_car_div"
+ </b>
+ attribute.
+        This is the &lt;div&gt; that will be used
+        for our edit car dialog. This is set
+        up similarly to the &lt;div&gt; used for the
+        add car dialog. The
+ <b>
+  id
+ </b>
+ attributes have different
+        values for the form elements, as these are
+        used for editing a car document. Note that
+        this &lt;div&gt; has three buttons defined at the
+        bottom. The "Update" button will be used to
+        call the updateCar() function (defined in "car_axios.js". The
+        "Cancel" button will be used to hide the
+        edit dialog box without making any changes. The
+        "Delete" button will eventually be used to delete
+        the selected car document. The ability to delete
+        will be added later on.
+</p>
+<p>
+ Lines 112-113 get a reference to the "Cancel"
+        button in the edit car dialog. Lines 114-115
+        associated clicking on that button with the
+ <b>
+  hideEditDialog()
+ </b>
+ function. Lines 82-89 define that
+ <b>
+  hideEditDialog()
+ </b>
+ function. The
+        hideEditDialog() function just sets the display of the
+        white background and the edit dialog box to
+        "none" to hide that dialog box without making
+        any changes.
+</p>
+<p>
+ Lines 108-109 get a reference to the "Update"
+        button in the edit car dialog. Lines 110-111
+        associate clicking on that button with the
+ <b>
+  handleUpdateCar()
+ </b>
+ function that is defined on lines 90-97. The
+ <b>
+  handleUpdateCar()
+ </b>
+ function just reads the values for make,
+        model and price from the forms in the
+        edit dialog box and use those values in
+        the call to the
+ <b>
+  updateCar()
+ </b>
+ function to update
+        the car document. Note on line 94 that
+        the
+ <b>
+  id
+ </b>
+ argument is set to
+ <b>
+  edit_id
+ </b>
+ . The
+        value for
+ <b>
+  edit_id
+ </b>
+ is set on line 67
+        in the
+ <b>
+  showEditDialog()
+ </b>
+ function. That is the function
+        that is called when the user clicks on
+        the table row to be edited. Line 96
+        just causes the edit dialog box and the
+        white background to be hidden when the car
+        document is updated.
+</p>
+<p>
+ Line 11 declares the
+ <b>
+  edit_id
+ </b>
+ variable. The
+ <b>
+  edit_id
+ </b>
+ will be used to hold the
+ <b>
+  _id
+ </b>
+ value
+        of the car document that is selected for
+        editing. Line 28 adds an event listener to
+        the table row element holding the car document
+        data. Note that clicking on a table row
+        will cause the
+ <b>
+  showEditDialog()
+ </b>
+ function to be called.
+</p>
+<p>
+ Lines 65-81 define the
+ <b>
+  showEditDialog()
+ </b>
+ function. This function
+        is declared as
+ <b>
+  async
+ </b>
+ on line 65, so
+        that the
+ <b>
+  await
+ </b>
+ operator can be used on
+        line 68. Line 66 is commented out, but
+        was used to show the value of the
+ <b>
+  currentTarget
+ </b>
+ property of the event that caused showEditDialog()
+        to be called. Line 67 gets the
+ <b>
+  id
+ </b>
+ property of the &lt;tr&gt; element that was clicked
+        on to trigger this event. This means that
+        the
+ <b>
+  id
+ </b>
+ value comes from that table row
+        that was clicked on. This is what allows
+        the user to select which car document to
+        edit. Whichever row for the car is clicked
+        on, that will be the car document selected
+        for editing.
+</p>
+<p>
+ This is a
+ <b>
+  very
+ </b>
+ important part of the
+        user interface. Handling the click event associated on
+        clicking with a row in the cars table
+        allows choosing the car to be edited. This
+        is where JavaScript shines because it makes the
+        user interface much cleaner. If we use PHP
+        to provide the user interface, we would need
+        to add radio buttons next to each car
+        row, to allow selection of the car to
+        be edited. This is clumsier and requires multiple
+        pages to carry out the editing process.
+</p>
+<p>
+ Another important thing to note about line 67.
+        When you use a click event generated by
+        an element besides a button, you need to
+        take into account what that element is. There
+        is a difference between
+ <b>
+  event.target
+ </b>
+ and
+ <b>
+  event.currentTarget
+ </b>
+ . When
+        the user clicks on a table row, that
+        row consists of several &lt;td&gt; elements inside a
+        &lt;tr&gt; element. If you click on the make
+        of the car, event.target will be the &lt;td&gt;
+        element holding the make. But, event.currentTarget will be
+        the enclosing container, the &lt;tr&gt; element. Since the
+        id of the car is tied to the
+        &lt;tr&gt; element on line 27, we need to
+        use event.currentTarget (and not event.target).
+</p>
+<p>
+ Getting back to the
+ <b>
+  showEditDialog()
+ </b>
+ function. Line 68
+        uses the
+ <b>
+  await
+ </b>
+ operator to make sure that
+        execution of the code stops until the car
+        document is returned by the
+ <b>
+  getCarById()
+ </b>
+ function. Lines
+        69-71 get references to the &lt;input&gt; elements for
+        the make, model and price, respectively. Lines 72-74
+        set the values of those text boxes to
+        be the values from the car document that
+        is to be edited. This makes it so
+        that the user has to enter as few
+        things as possible to edit the car document.
+        Lines 75-80 just cause the edit dialog box
+        to display, but with the textboxes set with
+        the existing car document's values.
+</p>
+<p>
+ With all these changes, we can now edit
+        any car document by clicking on the row
+        for the car we want to edit. This
+        screen shot shows the edit car dialog being
+        shown when the user clicked on the Honda
+        Civic:
+</p>
+<p>
+ <img alt="screen shot showing the honda civic
+        being edited" border="1" src="obj3_images/edit_honda_civic.png"/>
+</p>
+<p>
+ As can be seen above, the old price
+        (seen in the background) was 23957.99, and the
+        edited price is $1000 dollars higher or 24957.99.
+        When the user clicks on the "Update" button,
+        this is the result:
+</p>
+<p>
+ <img alt="screen shot showing the updated price
+        for the honda civic" border="1" src="obj3_images/honda_civic_updated.png"/>
+</p>
+<h3>
+ Deleting a car document
+</h3>
+<p>
+ Finally, we can put in the ability to
+        delete a car document. Here is the new
+        version of "cars_app.html":
+</p>
+<pre class="line-numbers" data-line="100-103,122-125"><code class="language-markup">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;meta charset="utf-8"&gt;
+      &lt;link href="cars_app.css" rel="stylesheet" type="text/css"&gt;
+      &lt;script src="axios.min.js"&gt;&lt;/script&gt;
+      &lt;script src="cars_axios.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+         document.addEventListener('DOMContentLoaded',init);
+         let car_data = [];
+         let edit_id;
+         function removeChildren(elem) {
+            while (elem.childNodes.length &gt; 0) {
+               elem.removeChild(elem.childNodes[0]);
+            }
+         }
+         function updateCarsTable() {
+            const cars_tbody = document.getElementById('cars_tbody');
+            removeChildren(cars_tbody);
+            for (let i = 0; i &lt; car_data.length; i++) {
+               const car = car_data[i];
+               let id = car._id;
+               let make = document.createTextNode(car.make);
+               let model = document.createTextNode(car.model);
+               let price = document.createTextNode(car.price);
+               let tr = document.createElement('tr');
+               tr.setAttribute('id',id);
+               tr.addEventListener('click',showEditDialog);
+               let td = document.createElement('td');
+               td.appendChild(make);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(model);
+               tr.appendChild(td);
+               td = document.createElement('td');
+               td.appendChild(price);
+               tr.appendChild(td);
+               cars_tbody.appendChild(tr);
+            }
+         }
+         function showAddDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'block';
+            const add_car_div = document.getElementById(
+               'add_car_div');
+            add_car_div.style.display = 'block';
+         }
+         function hideAddDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'none';
+            const add_car_div = document.getElementById(
+               'add_car_div');
+            add_car_div.style.display = 'none';
+         }
+         function handleAddCar() {
+            const make = document.getElementById("add_make");
+            const model = document.getElementById("add_model");
+            const price = document.getElementById("add_price");
+            hideAddDialog();
+            addCar(make.value.trim(), model.value.trim(),
+               price.value.trim());
+         }
+         async function showEditDialog(event) {
+            //console.log(event.currentTarget);
+            edit_id = event.currentTarget.id;
+            const car = await getCarById(edit_id);
+            const make = document.getElementById('edit_make');
+            const model = document.getElementById('edit_model');
+            const price = document.getElementById('edit_price');
+            make.value = car.make;
+            model.value = car.model;
+            price.value = car.price;
+            //console.log('car.make',car);
+            //console.log('edit_id',edit_id);
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'block';
+            const edit_car_div = document.getElementById(
+               'edit_car_div');
+            edit_car_div.style.display = 'block';
+         }
+         function hideEditDialog() {
+            const white_background = document.getElementById(
+               'white_background');
+            white_background.style.display = 'none';
+            const edit_car_div = document.getElementById(
+               'edit_car_div');
+            edit_car_div.style.display = 'none';
+         }
+         function handleUpdateCar() {
+            const make = document.getElementById('edit_make');
+            const model = document.getElementById('edit_model');
+            const price = document.getElementById('edit_price');
+            updateCar(edit_id, make.value, model.value,
+               price.value);
+            hideEditDialog();
+         }
+         function handleDeleteCar() {
+            deleteCar(edit_id);
+            hideEditDialog();
+         }
+         function init() {
+            getCars();
+            const add_car_button = document.getElementById(
+               "add_car_button");
+            add_car_button.addEventListener('click',
+               handleAddCar);
+            const add_car_cancel = document.getElementById(
+               "add_car_cancel");
+            add_car_cancel.addEventListener('click',
+               hideAddDialog);
+            const edit_car_button = document.getElementById(
+               "edit_car_button");
+            edit_car_button.addEventListener('click',
+               handleUpdateCar);
+            const edit_car_cancel = document.getElementById(
+               "edit_car_cancel");
+            edit_car_cancel.addEventListener('click',
+               hideEditDialog);
+            const edit_car_delete = document.getElementById(
+               "edit_car_delete");
+            edit_car_delete.addEventListener('click',
+               handleDeleteCar);
+            const add = document.getElementById("add");
+            add.addEventListener('click',showAddDialog);
+         }
+      &lt;/script&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+      &lt;h1&gt;Cars database application&lt;/h1&gt;
+      &lt;div id="white_background"&gt;&lt;/div&gt;
+      &lt;div id="add_car_div"&gt;
+         Make:
+         &lt;input id="add_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="add_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="add_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="add_car_button"&gt;OK&lt;/button&gt;
+         &lt;button id="add_car_cancel"&gt;Cancel&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id="edit_car_div"&gt;
+         Make:
+         &lt;input id="edit_make" type="text"&gt;&lt;br&gt;
+         Model:
+         &lt;input id="edit_model" type="text"&gt;&lt;br&gt;
+         Price:
+         &lt;input id="edit_price" type="text"&gt;&lt;br&gt;
+         &lt;button id="edit_car_button"&gt;Update&lt;/button&gt;
+         &lt;button id="edit_car_cancel"&gt;Cancel&lt;/button&gt;
+         &lt;button id="edit_car_delete"&gt;Delete&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;button id="add"&gt;Add car&lt;/button&gt;
+      &lt;table border="1"&gt;
+         &lt;caption&gt;Cars Table&lt;/caption&gt;
+         &lt;thead&gt;
+            &lt;tr&gt;
+               &lt;th&gt;make&lt;/th&gt; &lt;th&gt;model&lt;/th&gt; &lt;th&gt;price&lt;/th&gt;
+            &lt;/tr&gt;
+         &lt;/thead&gt;
+         &lt;tbody id="cars_tbody"&gt;&lt;/tbody&gt;
+      &lt;/table&gt;
+   &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>
+ The new lines are lines 100-103 and lines
+        122-125. Lines 122-123 get a reference to the
+        "Delete" button in the edit car dialog. Lines
+        124-125 associated clicking on the "Delete" button with
+        the
+ <b>
+  handleDeleteCar()
+ </b>
+ function defined on lines 100-103.
+</p>
+<p>
+ Lines 100-103 define the
+ <b>
+  handleDeleteCar()
+ </b>
+ function. Since the
+ <b>
+  edit_id
+ </b>
+ value is the id of the car
+        that has been selected, all that this function
+        does is pass that id to the
+ <b>
+  deleteCar()
+ </b>
+ function (defined in "cars_axios.js") to delete the car
+        object. Line 102 just calls hideEditDialog() to close
+        the white background and edit car dialog.
+</p>
+<p>
+ You can verify that this works by clicking
+        on a car and hitting "Delete". You will
+        see that the car document is removed.
+</p>
+<p>
+ This shows how to create a simple web
+        application that uses a REST middleware to support
+        CRUD operations.
+</p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module8.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module8/objective3.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:54 GMT -->
+</html>

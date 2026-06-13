@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module3/objective3.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:42 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module3.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+<h2>
+ Objective 3 - Creating views that combine several tables in a relational database
+</h2>
+<p>
+ In the previous
+ <a href="objective2.html" target="_blank">
+  lesson
+ </a>
+ we wound
+        up with the following SQL script, "init.sql":
+</p>
+<pre class="line-numbers" data-line=""><code class="language-sql">
+-- init.sql
+drop table if exists students cascade;
+drop table if exists sections cascade;
+drop table if exists signups cascade;
+
+create table students(
+   id serial,
+   first_name text,
+   last_name text,
+   major text,
+   primary key (id)
+);
+create table sections(
+   id serial,
+   prefix text,
+   number text,
+   credits integer,
+   primary key (id)
+);
+create table signups(
+   id serial,
+   student_id integer references students(id),
+   section_id integer references sections(id),
+   primary key (id)
+);</code></pre>
+<p>
+ Let's create a view that joins all three
+        tables:
+</p>
+<pre class="line-numbers" data-line=""><code class="language-sql">
+create view signups_view as
+   select students.id as st_id, students.first_name, students.last_name,
+   students.major, sections.id as sect_id, sections.prefix,
+   sections.number, sections.credits from 
+   students join signups on students.id=signups.student_id
+   join sections on signups.section_id=sections.id;</code></pre>
+<p>
+ On line 1, we use the SQL CREATE
+        VIEW AS to create a view called "signups_view".
+        Line 2 starts of with
+ <b>
+  select
+ </b>
+ followed by
+        all the fields from the tables that we
+        want to include in the view. Note on
+        line2 that we use the following alias,
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+students.id as st_id</code></pre>
+<p>
+ This is because we refer to a field
+        with the same name later on with
+ <b>
+  sections.id
+ </b>
+ .
+        To avoid a collision between having two fields
+        with the same name, we use the alias
+ <b>
+  st_id
+ </b>
+ for the students.id field. This is why
+        the other alias,
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+sections.id as sect_id</code></pre>
+<p>
+ is used as well. Although we might not
+        use every field selected when using this view
+        in an application, you should include any field
+        that you might possibly want to display. The
+        end of line 4 has the key word
+ <b>
+  from
+ </b>
+ that designates where those fields are going
+        to be selected from. Lines 5 and 6
+        are the lines used to join the three
+        tables together. Line 5 shows this:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+students join signups on students.id=signups.student_id</code></pre>
+<p>
+ This comes directly from the foreign key constraint
+        imposed by the definition of the
+ <b>
+  signups
+ </b>
+ . From
+        the declaration of the
+ <b>
+  signups
+ </b>
+ table on line
+        22, we have the student_id field declared as:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+student_id integer references students(id)</code></pre>
+<p>
+ As is shown in the view, this means
+        that
+ <b>
+  students.student_id
+ </b>
+ must match
+ <b>
+  students.id
+ </b>
+ .
+</p>
+<p>
+ Similarly, line 23 from the definition of the
+        signups table:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+section_id integer references sections(id)</code></pre>
+<p>
+ means that
+ <b>
+  signups.section_id
+ </b>
+ must match
+ <b>
+  sections.id
+ </b>
+ .
+</p>
+<p>
+ Inserting some data
+</p>
+<p>
+ To see the view in action, let's insert
+        some data into the three tables. Here is
+        a SQL script called "add_initial_data.sql" that can be
+        used for this purpose:
+</p>
+<pre class="line-numbers" data-line=""><code class="language-sql">
+-- add_initial_data.sql
+insert into students (first_name, last_name, major) values 
+   ('Jane','Doe','CSNT');
+insert into students (first_name, last_name, major) values 
+   ('John','Doe','CSNT');
+insert into students (first_name, last_name, major) values 
+   ('Bill','Gates','ICS');
+   
+insert into sections (prefix, number, credits) values 
+   ('CSNT','110',3);
+insert into sections (prefix, number, credits) values 
+   ('CSNT','280',3);
+insert into sections (prefix, number, credits) values 
+   ('ICS','111',4);
+   
+insert into signups (student_id, section_id) values (1,1);
+insert into signups (student_id, section_id) values (1,3);
+insert into signups (student_id, section_id) values (2,2);
+insert into signups (student_id, section_id) values (2,3);
+insert into signups (student_id, section_id) values (3,2);</code></pre>
+<p>
+ After running this SQL script, here is a
+        select query that makes use of the view:
+</p>
+<pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+select * from signups_view;
+st_id  | first_name | last_name | major | sect_id | prefix | number | credits 
+-------+------------+-----------+-------+---------+--------+--------+---------
+     1 | Jane       | Doe       | CSNT |       1  | CSNT   | 110    |       3
+     1 | Jane       | Doe       | CSNT |       3  | ICS    | 111    |       4
+     2 | John       | Doe       | CSNT |       2  | CSNT   | 280    |       3
+     2 | John       | Doe       | CSNT |       3  | ICS    | 111    |       4
+     3 | Bill       | Gates     | ICS  |       2  | CSNT   | 280    |       3</code></pre>
+<p>
+ As can be seen, Jane Doe signed up
+        for CSNT110 and ICS111. John Doe signed up
+        for CSNT280 and ICS111, and Bill Gates signed
+        up for CSNT280.
+</p>
+<p>
+ This view represents unnormalized data that comes from
+        multiple tables. That is the purpose of a
+        view. In other words, a view is used
+        to gather data from more than one table.
+        While views are often the most useful way
+        of representing data to an end user, the
+        data in a view is not normalized and
+        can represent difficulty if you are moving the
+        data into a new database. If that is
+        the situation, you need to have a way
+        of normalizing the data before inserting into the
+        new database tables. That is a
+ <a href="../module4/objective2.html" target="_blank">
+  topic
+ </a>
+ that we will discuss later.
+</p>
+<p>
+</p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module3.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module3/objective3.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:42 GMT -->
+</html>

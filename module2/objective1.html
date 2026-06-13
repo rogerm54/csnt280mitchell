@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module2/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:37 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module2.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 1 - Creating a single table with fields
+   </h2>
+   <h3>
+    Creating a PostgreSQL database
+   </h3>
+   <p>
+    Before we can create a table, let's create
+        a database that we can work with. We
+        start by logging into psql using the superuser
+        account and creating a database called
+    <b>
+     sql_example_db
+    </b>
+    that
+        is owned by 'bob':
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+psql -U csnt280man -W csnt280db
+
+create database sql_example_db owner bob;
+\q</code></pre>
+   <p>
+    Now we can create a SQL script to
+        create our first table in this database.
+   </p>
+   <h3>
+    Creating a simple users table
+   </h3>
+   <p>
+    Let's create a simple SQL script that creates
+        a users table. To begin, let's make this
+        table have a first_name field and a last_name
+        field. Here is a first version of the
+        script "init.sql":
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+-- init.sql
+create table users (
+   first_name varchar(30),
+   last_name varchar(40)
+);</code></pre>
+   <p>
+    On line 1, the two dashes in a
+        row means the rest of the line is
+        a comment. In this case, that comment just
+        states the name of this file. Lines 2-5
+        contain the SQL instructions to create a table
+        named
+    <b>
+     users
+    </b>
+    . This is just one instruction, but
+        breaking it on to several lines makes the
+        instruction easier to read. Line 2 uses the
+    <b>
+     keywords
+    </b>
+    create and
+    <b>
+     table
+    </b>
+    to start the table
+        definition. Line 2 will name the table "users"
+        if three. Lines 3 and4 will create the
+        fields
+    <b>
+     first_name
+    </b>
+    and
+    <b>
+     last_name
+    </b>
+    , respectively. Line 5 just
+        ends the SQL create statement.
+   </p>
+   <p>
+    When you are creating fields as on line
+        3 and line 4, you start with the
+        field name, followed by the field data type.
+        You can follow the data type with a
+    <b>
+     constraint
+    </b>
+    . For example, if a field is required
+        a constraint of
+    <b>
+     not null
+    </b>
+    is used to
+        make sure that the field is not left
+        empty. For this simple table, no constraints are
+        used. The data type,
+    <b>
+     varchar(30)
+    </b>
+    , means that the
+        field will consist of 30 characters or less.
+        So, on line 4, the last_name field is
+        expected to consist of 40 or less characters.
+        More on data types is presented on the
+        following
+    <a href="data_types.html" target="_blank">
+     page
+    </a>
+    .
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+   </p>
+   <p>
+    Field names in PostgreSQL
+   </p>
+   <p>
+    A field name should consist of letters and
+        digits without any spaces. You can also include
+        characters like underscores "_". In PostgreSQL, all table
+        and field names that are not double-quoted are
+        folded into lower case letters. To avoid having
+        to double-quote all table and field names, it
+        is simpler to stick to all lowercase letters.
+        That is, don't use camel case. So, instead
+        of
+    <b>
+     firstName
+    </b>
+    , use
+    <b>
+     first_name
+    </b>
+    instead. That way, you
+        will not have to use double-quotes around all
+        your field names.
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+   </p>
+   <p>
+    As it stands, this is not a good
+        example of a table. This is because the
+        table is missing several important fields that would
+        be commonly used in a users table. One
+        field is missing is some sort of id
+        field that can serve as a
+    <b>
+     primary key
+    </b>
+    .
+   </p>
+   <p>
+    A primary key is a field that can
+        uniquely identify any row in a table. To
+        help understand this concept, consider the first_name field.
+        Since it is possible to have more than
+        one user that has the same first name,
+        the first_name field cannot serve as a primary
+        key field. That is, just knowing the first_name
+        of a user is not enough to uniquely
+        identify the user. The same thing would apply
+        to the last_name field. Since more than one
+        user could have the same last name, the
+        last_name field would also not be usable as
+        a primary key.
+   </p>
+   <p>
+    So, let's add an id field that can
+        serve as the primary key for the users
+        table. The easiest, and recommended, way is to
+        use a field type of
+    <b>
+     serial
+    </b>
+    for this
+        field as is shown next.
+   </p>
+   <pre class="line-numbers" data-line="3"><code class="language-markup">
+-- init.sql
+create table users (
+   id serial,
+   first_name varchar(30),
+   last_name varchar(40)
+);</code></pre>
+   <p>
+    In PostgreSQL, using the serial type is an
+        auto incrementing integer that will implicitly create a
+        sequence to control the auto-incrementing feature. So, to
+        replace, the serial type, you would have to
+        do the following:
+   </p>
+   <pre class="line-numbers" data-line="2,4"><code class="language-markup">
+-- init.sql
+create sequence users_id_seq;
+create table users (
+   id integer not null default nextval('users_id_seq'),
+   first_name varchar(30),
+   last_name varchar(40)
+);</code></pre>
+   <p>
+    In some databases, using the
+    <b>
+     serial
+    </b>
+    type will
+        implicitly set up every thing that is needed
+        to support an auto-incrementing integer that cannot be
+        null. For example, in
+    <b>
+     MySQL
+    </b>
+    , using the
+    <b>
+     serial
+    </b>
+    type will be equivalent to the following declaration:
+   </p>
+   <p>
+    id bigint unsigned not null auto_increment;
+   </p>
+   <p>
+    MySQL does not use sequences, so you don't
+        need to worry about creating a sequence. In
+        either the case of PostgreSQL or MySQL, using
+        the serial type is the easiest way to
+        create a type that is suitable for a
+        primary key.
+    <b>
+     IBM DB2
+    </b>
+    supports the serial type.
+        However, you will need to be careful as
+        the
+    <b>
+     sqlite3
+    </b>
+    database uses:
+   </p>
+   <p>
+    id integer not null autoincrement;
+   </p>
+   <p>
+    as sqlite3 has no
+    <b>
+     serial
+    </b>
+    type.
+   </p>
+   <p>
+    If you are using
+    <b>
+     Oracle DB
+    </b>
+    , you will
+        need to use sequences and a integer not
+        null with a trigger that uses the sequence
+        to help perform the auto-increment. There is no
+        serial type in Oracle DB.
+   </p>
+   <p>
+    So, you will need to check with the
+        database documentation. But for our course, since we
+        will mainly use PostgreSQL and possibly MySQL, using
+        the serial type is the way to go.
+   </p>
+   <h3>
+    Loading the SQL script in psql
+   </h3>
+   <p>
+    One way to load the SQL script into
+        psql is to connect to psql and use
+        the include (
+    <b>
+     \i
+    </b>
+    ) command. Here is an example
+        that shows how to do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ psql -U bob -W sql_example_db
+Password for user bob: 
+psql (9.5.10)
+Type "help" for help.
+
+sql_example_db=&gt; \i init.sql
+CREATE TABLE</code></pre>
+   <p>
+    Another way to include the SQL script is
+        to include it on the command line when
+        logging into psql:
+   </p>
+   <p>
+    psql -U bob -W sql_example_db &lt; init.sql
+   </p>
+   <p>
+    This can be a good way to include
+        a SQL script as part of a shell
+        script. However, the first method is better if
+        you want to remain in psql and connected
+        to the database.
+   </p>
+   <p>
+    Updating the SQL script
+   </p>
+   <p>
+    Suppose that you have already loaded the SQL
+        script to create a table into the database
+        and you want to make changes to the
+        table design. For example, suppose you decide you
+        want to store the user's e-mail address and
+        password in the users table. Rather than use
+        the SQL alter command, it is much simpler
+        to just change "init.sql" and reload that script
+        again. However, if you try to do this
+        by just adding in extra fields, you will
+        see an error message similar to the following:
+   </p>
+   <p>
+    psql:init.sql:6: ERROR: relation "users" already exists
+   </p>
+   <p>
+    That is because you are trying to create
+        a table that already exists. The correct way
+        to do this is to make sure that
+        you drop the users table before trying to
+        create the users table again. Here is the
+        new version of "init.sql":
+   </p>
+   <pre class="line-numbers" data-line="2,6-9"><code class="language-markup">
+-- init.sql
+drop table if exists users cascade;
+create table users (
+   id serial,
+   first_name varchar(30),
+   last_name varchar(40),
+   e_mail varchar(100),
+   password varchar(40),
+   primary key (id)
+);</code></pre>
+   <p>
+    Now, reincluding "init.sql" will allow the changes:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+sql_example_db=&gt; \i init.sql
+DROP TABLE
+CREATE TABLE</code></pre>
+   <p>
+    Note on line 2 the use of the
+        key words
+    <b>
+     if exists
+    </b>
+    . That will allow you
+        to put in the drop table command even
+        if the SQL script is running for the
+        first time. Note also on line 2 the
+        use of the
+    <b>
+     cascade
+    </b>
+    key word. This will
+        cause any relations that depend on the users
+        table to be dropped as well.
+   </p>
+   <p>
+    Note that line 6 has been modified to
+        add a comma on the end. That is
+        because
+    <b>
+     last_name
+    </b>
+    is no longer the last entry
+        inside the create table command. Lines 7 and
+        8 add the new fields and line declares
+        that
+    <b>
+     id
+    </b>
+    field to be the
+    <b>
+     primary key
+    </b>
+    field. Some people put the primary key constraint
+        on the same line (line 4) as the
+        field itself. However, using the notation on line
+        9 allows designating more than one field as
+        the primary key. If you designate more than
+        one field as the primary key, you separate
+        the field names with a comma:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+primary key (field1,field2,field3)</code></pre>
+   <p>
+    Using several fields might be used when the
+        combination of all of those fields should be
+        a unique entry for that table. For example,
+        the course CRN for our Banner system is
+        not unique, but the combination of the CRN,
+        the term (Fall or Spring) and year is
+        unique. So, you could use the combination of
+        those three fields as a primary key.
+   </p>
+   <p>
+    We will be using SQL scripts to create
+        tables, create views and insert data into tables.
+        So, there will be a lot more examples
+        of SQL scripts in the following pages. But,
+        to be able to create tables using SQL
+        scripts, really requires an understanding of the data
+        types available for the table fields.
+   </p>
+   <h3>
+    Data Types
+   </h3>
+   <p>
+    The data types defined for SQL in general
+        can be found on a page like
+    <a href="http://www-db.deis.unibo.it/courses/TW/DOCS/w3schools/sql/sql_datatypes_general.asp.html" target="_blank">
+     this
+    </a>
+    . However, for the most part, we
+        are mainly interested in the data types that
+        are supported by PostgreSQL as this is the
+        main database that we are using for this
+        course. If you are using a different database,
+        you should look up documentation for the data
+        types for that database, as those data types
+        will be somewhat different from the data types
+        in PostgreSQL and other database.
+   </p>
+   <p>
+    Important PostgreSQL data types
+   </p>
+   <p>
+    A good simple guide to PostgreSQL data types
+        can be found
+    <a href="http://www.postgresqltutorial.com/postgresql-data-types/" target="_blank">
+     here
+    </a>
+    . Here are
+        the important PostgreSQL data types that we will
+        use for this course:
+   </p>
+   <h4>
+    Boolean data type
+   </h4>
+   <p>
+    A Boolean data type can hold one of
+        three values: true, false or null. You can
+        use either
+    <b>
+     boolean
+    </b>
+    or
+    <b>
+     bool
+    </b>
+    to declare the
+        Boolean data type.
+   </p>
+   <p>
+    To insert into a boolean field, inserting a
+    <b>
+     't'
+    </b>
+    for true. A
+    <b>
+     'f'
+    </b>
+    should be inserted
+        for false. When you compare to a value
+        in a boolean field, you test to see
+        if the value is
+    <b>
+     't'
+    </b>
+    for true or
+    <b>
+     'f'
+    </b>
+    for false.
+   </p>
+   <h4>
+    char(n) data type
+   </h4>
+   <p>
+    The
+    <b>
+     char
+    </b>
+    <b>
+     (n)
+    </b>
+    data type is used to hold
+        a string of characters of exactly a certain
+        length. So, declaring a field like this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+banner_id char(8),</code></pre>
+   <p>
+    means that banner_id should be exactly 8 characters.
+   </p>
+   <h4>
+    varchar(n) data type
+   </h4>
+   <p>
+    The
+    <b>
+     varchar
+    </b>
+    <b>
+     (n)
+    </b>
+    data type is used to hold
+        a string of characters that can vary from
+        0 up to n characters. So, the following
+        declaration:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+first_name varchar(30),</code></pre>
+   <p>
+    means that first_name can be between 0 and
+        30 characters long.
+   </p>
+   <h4>
+    text data type
+   </h4>
+   <p>
+    The
+    <b>
+     text
+    </b>
+    data type can store strings of
+        any length. You can use this for any
+        field in which you could possibly have a
+        very long string. There is no loss of
+        efficiency in using
+    <b>
+     text
+    </b>
+    versus
+    <b>
+     varchar
+    </b>
+    <b>
+     (n)
+    </b>
+    , so many
+        PostgreSQL developers use
+    <b>
+     text
+    </b>
+    so they don't have
+        to worry about not having a large enough
+        space for the field.
+   </p>
+   <h4>
+    integer data type
+   </h4>
+   <p>
+    This type is a 4-byte integer that can
+        range from -2,147,483,648 to 2,147,483,647.
+   </p>
+   <h4>
+    serial data type
+   </h4>
+   <p>
+    The
+    <b>
+     serial
+    </b>
+    data type is a 4-byte integer
+        but PostgreSQL will automatically create a sequence and
+        populate the field with values similar to auto_increment
+        in MySQL. The
+    <b>
+     serial
+    </b>
+    type is the recommend
+        data type for
+    <b>
+     id
+    </b>
+    fields that you intend
+        to use as a
+    <b>
+     primary key
+    </b>
+    .
+   </p>
+   <h4>
+    float(n) data type
+   </h4>
+   <p>
+    This is a floating point (real number) with
+    <b>
+     n
+    </b>
+    up to 8 bytes of precision. Since
+        this is a real number, the data is
+        stored inexactly.
+   </p>
+   <h4>
+    real or float8 data type
+   </h4>
+   <p>
+    This is a double-precision real using 8 bytes
+        of storage. This, like float(n), is an inexact
+        number.
+   </p>
+   <h4>
+    numeric(p,s) data type
+   </h4>
+   <p>
+    This is a real number with
+    <b>
+     p
+    </b>
+    total
+        digits with
+    <b>
+     s
+    </b>
+    digits after the decimal point.
+        This is stored as an
+    <b>
+     exact
+    </b>
+    number. This
+        would be the data type used to store
+        currency, since it is an exact number.
+   </p>
+   <h4>
+    date data type
+   </h4>
+   <p>
+    The
+    <b>
+     date
+    </b>
+    type is used to store date
+        values only. This does not store the time.
+   </p>
+   <p>
+    The
+    <b>
+     timestamp
+    </b>
+    type stores both the date and
+        time.
+   </p>
+   <p>
+    Other data types
+   </p>
+   <p>
+    There are other data types like
+    <b>
+     array
+    </b>
+    s,
+    <b>
+     JSON
+    </b>
+    and
+    <b>
+     UUID
+    </b>
+    (Universal Unique Identifiers). But, we will
+        probably not use them for this course. A
+        JSON object would in many cases not represent
+        atomic data, so it is used only for
+        special cases.
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module2.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module2/objective1.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:38 GMT -->
+</html>

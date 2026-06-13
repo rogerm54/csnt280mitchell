@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/setup/docker.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:23 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Using Docker
+   </h2>
+   <h3>
+    A separate Docker container for PostgreSQL
+   </h3>
+   <p>
+    Although we have set up a way to
+        connect a PostgreSQL docker container and a PHP-Apache
+        docker container using docker-compose, let's create another PostgreSQL
+        docker container for projects that don't require PHP
+        to work with PostgreSQL.
+   </p>
+   <p>
+    Start by going to your Desktop and creating
+        a directory called
+    <b>
+     docker_postgres
+    </b>
+    . Inside that directory create
+        a directory called
+    <b>
+     docs
+    </b>
+    . Here are the commands
+        to do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop
+$ mkdir -p docker_postgres/docs</code></pre>
+   <p>
+    Next, we want to create a file called
+    <b>
+     Dockerfile
+    </b>
+    inside the docker_postgres directory. You can use
+        the geany editor to do this. Here are
+        the commands:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_postgres
+$ geany Dockerfile &amp;</code></pre>
+   <p>
+    Within the geany editor, type the following commands:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+FROM postgres
+RUN apt-get update -y &amp;&amp; apt-get install nano -y
+WORKDIR /docs</code></pre>
+   <p>
+    Line 1 will pull the latest postgres package
+        from Docker Hub. Line 2 will run update
+        the repositories and install
+    <b>
+     nano
+    </b>
+    (a simple text
+        editor). Line 3 will set the working directory
+        to be
+    <b>
+     /docs
+    </b>
+    . We will use
+    <b>
+     /docs
+    </b>
+    as
+        a persistent volume for our Docker container.
+   </p>
+   <h4>
+    Building the Docker image
+   </h4>
+   <p>
+    Now that we have Dockerfile set up, let's
+        build the Docker image. We will call this
+        image "postgres_img". Here are the commands:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_postgres
+$ docker build -t postgres_img .</code></pre>
+   <p>
+    Make sure you type the dot (.) at
+        the end of the build command. This will
+        cause Docker to look inside the current directory
+        for the file "Dockerfile" and build the image
+        based on the contents of "Dockerfile". The name
+        of the image will be "postgres_img".
+   </p>
+   <p>
+    This will take some time to run as
+        it involves downloading the latest postgres package, and
+        then updating the repositories to add
+    <b>
+     nano
+    </b>
+    . Once
+        it completes, you should be able to see
+        the image by running:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker image ls</code></pre>
+   <p>
+    This will display the following:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+REPOSITORY                        TAG                 IMAGE ID            CREATED             SIZE
+postgres_img                      latest              ef94d2d51604        49 minutes ago      333MB</code></pre>
+   <p>
+    Other Docker images may exist because of the
+        containers built using docker-compose, but they are not
+        shown here for brevity. Also, note that I
+        built my image 49 minutes before making this
+        page.
+   </p>
+   <h4>
+    Creating the Docker container
+   </h4>
+   <p>
+    Next we want to create the Docker container
+        from the Docker image we just built. You
+        can create more than one Docker container from
+        a Docker image. If you think of the
+        Docker image like a class definition, a Docker
+        container is like a running instance of that
+        class. We will give our container a name
+        and reuse that container by stopping and starting
+        the container. This will allow us to have
+        changes that we make inside that container persist.
+   </p>
+   <p>
+    When we create the container, we are going
+        to use a named persistent volume. A named
+        persistent volume is a way of connecting a
+        shared directory between the host operating system and
+        the Docker container. This will allow us to
+        create and edit files in the host operating
+        system and have those files get mapped inside
+        the Docker container. With this in mind, here
+        are the commands to build and initially run
+        the Docker container:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_postgres
+$ docker container run -d --name=postgres_container -v $(pwd)/docs:/docs postgres_img</code></pre>
+   <p>
+    The command starts off with:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+docker container run</code></pre>
+   <p>
+    which is used to run a Docker container.
+        The
+    <b>
+     -d
+    </b>
+    switch means to run the container
+        as a daemon in the background. This part
+        of the command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+--name=postgres_container</code></pre>
+   <p>
+    names the Docker container. This part of the
+        command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+-v $(pwd)/docs:/docs</code></pre>
+   <p>
+    will create a named persistent volume that is
+        mapped to the Docker container. The $(pwd) will
+        call the print working directory command. If you
+        don't want to use that command, you could
+        change that part of the command to:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+-v ~/Desktop/docker_postgres/docs:/docs</code></pre>
+   <p>
+    Finally, the last part of the command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+postgres_img</code></pre>
+   <p>
+    is the name of the image we want
+        to use to create the container. Here is
+        what the command looks like when it succeeds
+        in creating and running the container:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker container run -d --name=postgres_container -v $(pwd)/docs:/docs postgres_img
+248048aee1e8100cb0b7d126425306ea29b51216be9f7a8cc584e2385a878c40</code></pre>
+   <p>
+    That is, you will see a long hexstring
+        that is the id string for the running
+        Docker container. To verify that this container is
+        running, use the following:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker container ls
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+248048aee1e8        postgres_img        "docker-entrypoint.s…"   2 minutes ago       Up 2 minutes        5432/tcp            postgres_container</code></pre>
+   <h4>
+    Stopping and restarting the container
+   </h4>
+   <p>
+    To stop the Docker container, run the following
+        command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker stop postgres_container
+postgres_container</code></pre>
+   <p>
+    As is shown, the name of the container
+        that has been stopped is shown on the
+        next line. To restart the container, run the
+        following:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker start postgres_container
+postgres_container</code></pre>
+   <p>
+    Once again, you can verify that the container
+        is running by doing this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker container ls
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+248048aee1e8        postgres_img        "docker-entrypoint.s…"   5 minutes ago       Up 19 seconds       5432/tcp            postgres_container</code></pre>
+   <h4>
+    Entering the container
+   </h4>
+   <p>
+    To enter the docker container just run the
+        following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker exec -it postgres_container bash
+root@32bd083594ed:/docs#</code></pre>
+   <p>
+    Now you can run whatever you need to
+        from this root prompt inside the container. For
+        a first time setup of the PostgreSQL server,
+        complete the following section:
+   </p>
+   <h3>
+    First time setup of a PostgreSQL Docker container
+   </h3>
+   <p>
+    Get a root prompt inside the PostgreSQL docker
+        container and use the
+    <b>
+     postgres
+    </b>
+    account to create
+        a superuser called
+    <b>
+     csnt280man
+    </b>
+    . Here are the steps
+        to follow:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+$ cd ~/Desktop/docker_postgres
+$ docker start postgres_container
+$ docker exec -it postgres_container bash
+root@32bd083594ed:/docs# su postgres
+postgres@32bd083594ed:/docs$ psql postgres
+psql (10.5 (Debian 10.5-1.pgdg90+1))
+Type "help" for help.
+
+postgres=# create role csnt280man login createdb createrole;
+CREATE ROLE
+postgres=# alter role csnt280man encrypted password 'pgsql_man';
+ALTER ROLE
+postgres=# create database csnt280db owner csnt280man;
+CREATE DATABASE
+postgres=# \q
+postgres@32bd083594ed:/docs$ exit
+exit
+root@32bd083594ed:/docs#</code></pre>
+   <p>
+    Line 1 just changes into the correct directory.
+        Line 2 should be run if the Docker
+        container is not already started. Line 3 gets
+        the root prompt inside the Docker container. Line
+        4 switches the user to the
+    <b>
+     postgres
+    </b>
+    user.
+        Line 5 runs the psql command with the
+        user set to postgres. Since the administrator database
+        is also named
+    <b>
+     postgres
+    </b>
+    and PostgreSQL is configured
+        to use
+    <b>
+     trust
+    </b>
+    authentication, line 5 will get
+        you into the "postgres" database as can be
+        seen on line 9.
+   </p>
+   <p>
+    On line 9, we create the superuser
+    <b>
+     csnt280man
+    </b>
+    .
+        On line 11, we set the password for
+        the
+    <b>
+     csnt280man
+    </b>
+    user. On line 13, we create
+        a database called
+    <b>
+     csnt280man
+    </b>
+    for the user with
+        the same name. Line 15 exits psql and
+        line 16 exits the switch to the postgres
+        user, so that we go back to the
+        root prompt.
+   </p>
+   <h4>
+    Removing a security weakness
+   </h4>
+   <p>
+    With the way the PostgreSQL is configured at
+        this point, a user can log into any
+        database without supplying a password. To prevent this,
+        we need to change the configuration inside of
+        /var/lib/postgresql/data/pg_hba.conf. Here are the steps to do this:
+   </p>
+   <p>
+    At the root prompt run the following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+root@32bd083594ed:/docs# nano /var/lib/postgresql/data/pg_hba.conf</code></pre>
+   <p>
+    When nano opens this file type ALT-G, then
+        enter 84. This will take you to line
+        84 in the file. You should comment that
+        line using a # symbol and add the
+        following line:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+local      add      add      md5</code></pre>
+   <p>
+    The resulting file should look like this:
+   </p>
+   <pre class="line-numbers" data-line="" data-start=" TYPE DATABASE        USER            ADDRESS                 METHOD"><code class="language-markup">
+# TYPE DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+#local   all             all                                     trust
+local   all     all     md5
+# IPv4 local connections:</code></pre>
+   <p>
+    The line numbers shown here are not the
+        line numbers from the file. What is line
+        4 here is actually line 84 in the
+        file. That is the line that should be
+        commented out. What is shown as line 5
+        here is the line that replaces the commented
+        out line.
+   </p>
+   <p>
+    Save the file by typing CTRL-O and hitting
+        &lt;enter&gt;. Then, type CTRL-X to exit nano. Now,
+        we need to exit the Docker container, stop
+        the Docker container and start the Docker container
+        again. Then, we can use the
+    <b>
+     csnt280man
+    </b>
+    user
+        to administer the database:
+   </p>
+   <pre class="line-numbers" data-line="" data-start=" nano /var/lib/postgresql/data/pg_hba.conf "><code class="language-markup">
+root@32bd083594ed:/docs# nano /var/lib/postgresql/data/pg_hba.conf 
+root@32bd083594ed:/docs# exit
+exit
+$ docker stop postgres_container
+postgres_container
+$ docker start postgres_container
+postgres_container
+$ docker exec -it postgres_container bash
+root@32bd083594ed:/docs#</code></pre>
+   <p>
+    Line 1 shows that we had used nano
+        to edit the configuration file. Line 2 shows
+        us exiting the root prompt (leaving the Docker
+        container). Line 4 stops the Docker container. Line
+        6 starts up the Docker container again. Stopping
+        and then starting the Docker container allows the
+        configuration change (made in pg_hba.conf) to take place.
+        Line 8 gets us back inside the Docker
+        container.
+   </p>
+   <p>
+    From that root prompt, we will use the
+        csnt280man account to create a user named
+    <b>
+     bob
+    </b>
+    and create a database called
+    <b>
+     bookstore_db
+    </b>
+    that is
+        owned by bob. Here are the steps:
+   </p>
+   <pre class="line-numbers" data-line="" data-start=" psql -U csnt280man"><code class="language-markup">
+root@32bd083594ed:/docs# psql -U csnt280man
+Password for user csnt280man: 
+psql (10.5 (Debian 10.5-1.pgdg90+1))
+Type "help" for help.
+
+csnt280man=&gt; create role bob login;
+CREATE ROLE
+csnt280man=&gt; alter role bob encrypted password 'somepass';
+ALTER ROLE
+csnt280man=&gt; grant bob to csnt280man;
+GRANT ROLE
+csnt280man=&gt; create database bookstore_db owner bob;
+CREATE DATABASE
+csnt280man=&gt; \q
+root@32bd083594ed:/docs#</code></pre>
+   <p>
+    On line 1 we start psql. Since we
+        don't supply the database name, psql will assume
+        the database has the same name as the
+        user. So, on line 6, you can see
+        that the database being used is
+    <b>
+     csnt280man
+    </b>
+    . You
+        can see this because of this prompt:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+csnt280man=&gt;</code></pre>
+   <p>
+    Line 6 is used to create a regular
+        user named
+    <b>
+     bob
+    </b>
+    . Line 8 sets the password
+        for
+    <b>
+     bob
+    </b>
+    . Line 10 makes it so that
+        csnt280man can grant ownership of a database to
+        bob. On line 12, we create the database
+    <b>
+     bookstore_db
+    </b>
+    and set the owner of that database
+        to be
+    <b>
+     bob
+    </b>
+    . Line 14 cause the csnt280man
+        user to quit using psql.
+   </p>
+   <p>
+    We will make use of this database later
+        in this
+    <a href="../module4/objective1.html" target="_blank">
+     lesson
+    </a>
+    .
+   </p>
+   <h3>
+    Rebuilding the docker-compose containers
+   </h3>
+   <p>
+    On the images, there are two Docker containers
+        that were set up using the docker-compose command
+        and the configuration files stored in the folder
+        ~/Desktop/docker_cent280. If you want to rebuild those containers
+        (and wipe out all the Docker images), you
+        can run the following command:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ docker system prune -a</code></pre>
+   <p>
+    You should only do this if you want
+        to remove every Docker image, every Docker container
+        and every Docker persistent volume. I will do
+        this if I want to start with a
+        clean set of images and containers.
+   </p>
+   <p>
+    If you clean out everything, you can follow
+        these steps to rebuild the containers that you
+        already had on the images for the course:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_cent280
+$ docker-compose up -d</code></pre>
+   <p>
+    From that point forward, you can stop those
+        Docker containers by doing this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_cent280
+$ docker-compose stop</code></pre>
+   <p>
+    To start those Docker containers you do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_cent280
+$ docker-compose start</code></pre>
+   <p>
+    To enter into the postgresql container, you would
+        do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_cent280
+$ docker-compose exec postgresql bash</code></pre>
+   <p>
+    To enter into the php-apache container, you would
+        do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/docker_cent280
+$ docker-compose exec php-apache bash</code></pre>
+   <p>
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/setup/docker.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:23 GMT -->
+</html>

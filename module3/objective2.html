@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module3/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:42 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module3.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 2 - Using SQL scripts to create relational database tables
+   </h2>
+   <p>
+    Let's go over another example of normalizing and
+        creating a relational database. For this example, assume
+        that we want to make a simple database
+        that keeps track of students signing up for
+        sections of courses. Note that since a student
+        can sign up for several sections and each
+        section can have multiple students, the relationship between
+        students and sections is a many-to-may relationship. We
+        need to normalize this data to make a
+        proper relational database.
+   </p>
+   <h3>
+    Database design
+   </h3>
+   <h4>
+    Identifying the entities
+   </h4>
+   <p>
+    The first step is to identify the important
+        entities. One entity is a student. Another entity
+        is a section for a course. A third
+        entity is some kind of record of student
+        signups for a section. So, let's create three
+        tables:
+    <b>
+     students
+    </b>
+    ,
+    <b>
+     sections
+    </b>
+    and
+    <b>
+     signups
+    </b>
+    .
+   </p>
+   <h4>
+    Adding fields to the tables
+   </h4>
+   <p>
+    Let's add fields to these tables. To keep
+        things simple, we will choose just enough fields
+        to illustrate the concepts. A real student registration
+        system would keep track of a lot more
+        fields than what we will use for our
+        example. Let's start with the
+    <b>
+     students
+    </b>
+    table. For
+        each student, let's keep track of their first
+        name, last name and major. Here is a
+        simple representation of a student:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+Student
+first_name
+last_name
+major</code></pre>
+   <p>
+    Although this is very simple, we have followed
+        one of the important rule that fields should
+        be
+    <b>
+     atomic
+    </b>
+    . In this case, we created separate
+        fields for the first name and last name,
+        instead of having one field for the entire
+        name. Let's write the SQL script needed to
+        create this table:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+create table students(
+   id serial,
+   first_name text,
+   last_name text,
+   major text,
+   primary key (id)
+);</code></pre>
+   <p>
+    Although we could have fit this SQL on
+        fewer lines, it is a good practice to
+        use one line per field. Line 1 is
+        the start of the SQL create statement. Since
+        we are creating a table, we use:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+create table &lt;tablename&gt;</code></pre>
+   <p>
+    Line 2 declares a field called
+    <b>
+     id
+    </b>
+    that
+        will use the data type
+    <b>
+     serial
+    </b>
+    . This means
+        that
+    <b>
+     id
+    </b>
+    will be a non-null integer that
+        will automatically increment based on a sequence called
+        'students_id_seq'. This makes the
+    <b>
+     id
+    </b>
+    field a suitable
+        choice for a primary key field as is
+        designated on line 6. A primary key field
+        must be unique for the table. That means
+        that no two records can have the same
+        value for a primary key field. A primary
+        key field is the field that is used
+        to relate (link) database tables together. That is
+        why it is so important for the primary
+        key field to be unique, because specifying the
+        value of a primary key uniquely identifies the
+        record for that table.
+   </p>
+   <p>
+    Lines 3, 4 and 5 define the first_name,
+        last_name and major fields. These are all given
+        the data type of 'text'. Although we could
+        use a data type of
+    <b>
+     varchar
+     <b>
+      , using a
+        data type of
+      <b>
+       text
+      </b>
+      is more flexible (any
+        size) and makes things simpler (without any performance
+        costs).
+     </b>
+    </b>
+   </p>
+   <p>
+    Next, we can design the sections table. Here
+        is the SQL script to do this:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+create table sections(
+   id serial,
+   prefix text,
+   number text,
+   credits integer,
+   primary key (id)
+);</code></pre>
+   <p>
+    For the sections table we separate out the
+        prefix from the number. So, a section like
+        CSNT110, has the prefix
+    <b>
+     CSNT
+    </b>
+    stored in a
+        separate field from the number
+    <b>
+     110
+    </b>
+    . The number
+        field is stored as text instead of a
+        number, because there are some courses like ICS110P,
+        where the number also contains a letter. The
+        credits field is declared as an integer. It
+        is possible for some courses to have a
+        number of credits that is not an integer,
+        but for this example we will only use
+        an integer number of credits. Just as with
+        the students table, the
+    <b>
+     id
+    </b>
+    field for the
+    <b>
+     sections
+    </b>
+    table will serve as the primary key.
+   </p>
+   <p>
+    Note that this is definitely an incomplete set
+        of fields. If there were two sections of
+        CSNT110 or CSNT280, this table definition would not
+        work. In a real database, we would add
+        other fields like location, meeting times, instructor, and
+        section number to allow for more than one
+        section of a course. But, for this example
+        this definition is good enough.
+   </p>
+   <p>
+    Finally, let's design the signups table. Here is
+        the SQL script to do this:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+create table signups(
+   id serial,
+   student_id integer references students(id),
+   section_id integer references sections(id),
+   primary key (id)
+);</code></pre>
+   <p>
+    Line 3 and line 4 are the important
+        lines that link the other two tables. The
+        relationships defined on these lines are what make
+        this a relational database. Line 3 declares a
+        field called
+    <b>
+     student_id
+    </b>
+    with a data type of
+        integer. The additional specifiers,
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+references students(id)</code></pre>
+   <p>
+    will create a
+    <b>
+     foreign key constraint
+    </b>
+    . This foreign
+        key constraint will only allow a record to
+        be stored in the
+    <b>
+     signups
+    </b>
+    table if the
+        value for the student_id exists in the
+    <b>
+     students
+    </b>
+    table. This makes sense as there is no
+        point to storing a student id for a
+        nonexistent student.
+   </p>
+   <p>
+    Line 4 declares a field
+    <b>
+     section_id
+    </b>
+    with a
+        data type of integer. Just as with the
+    <b>
+     student_id
+    </b>
+    field, the additional specifiers,
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+references sections(id)</code></pre>
+   <p>
+    will create a foreign key constraint that requires
+        the value for a section id exists in
+        the
+    <b>
+     sections
+    </b>
+    table.
+   </p>
+   <h3>
+    Creating a SQL script to create the tables
+   </h3>
+   <p>
+    Let's create the SQL script that creates these
+        tables. The SQL script will be written in
+        a way that would allow for each changes
+        to the design of the database tables. Here
+        is the SQL script:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-sql">
+-- init.sql
+drop table if exists students cascade;
+drop table if exists sections cascade;
+drop table if exists signups cascade;
+
+create table students(
+   id serial,
+   first_name text,
+   last_name text,
+   major text,
+   primary key (id)
+);
+create table sections(
+   id serial,
+   prefix text,
+   number text,
+   credits integer,
+   primary key (id)
+);
+create table signups(
+   id serial,
+   student_id integer references students(id),
+   section_id integer references sections(id),
+   primary key (id)
+);</code></pre>
+   <p>
+    Lines 2-4 drop the tables if they exist.
+        This will allow us to make changes to
+        the tables and rerun 'init.sql' to change the
+        database design. When you are developing a database,
+        it is very important to be able to
+        make changes at an early stage (before inserting
+        any real data). The use of a SQL
+        script like the one above makes this easy
+        to do.
+   </p>
+   <p>
+    If you actually create a database and run
+        'init.sql', the tables would be created. If we
+        connected to the database using
+    <b>
+     psql
+    </b>
+    , we could
+        use the display command to look at the
+        signups table:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+registration_db=&gt; \d signups
+                              Table "public.signups"
+   Column   | Type   | Collation | Nullable |               Default            
+   
+------------+---------+-----------+----------+----------------------------------
+---
+id         | integer |           | not null | nextval('signups_id_seq'::regclas
+s)
+student_id | integer |           |          | 
+section_id | integer |           |          | 
+Indexes:
+    "signups_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "signups_section_id_fkey" FOREIGN KEY (section_id) REFERENCES sections(id)
+    "signups_student_id_fkey" FOREIGN KEY (student_id) REFERENCES students(id)</code></pre>
+   <p>
+    Note the last two lines showing the
+    <b>
+     foreign
+        key constraints
+    </b>
+    . We will make use of those
+        constraints in creating a view for this database
+        in the next
+    <a href="objective3.html" target="_blank">
+     section
+    </a>
+    .
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module3.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module3/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:42 GMT -->
+</html>

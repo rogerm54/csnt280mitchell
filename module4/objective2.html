@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 4.2 - Selecting data from a relational database
+   </h2>
+   <h3>
+    Selecting all fields and all records from a table
+   </h3>
+   <p>
+    The easiest select query to set up is
+        one that selects all fields and all records
+        from a table. Using the data from our
+        bookstore_db database that was initialized in the last
+    <a href="../objective1.html" target="_blank">
+     lessong
+    </a>
+    , here are some examples:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books;
+id  |       title        |      author      | price 
+----+--------------------+------------------+-------
+  1 | Go Dog Go          | P.D. Eastman     | 7.99
+  2 | The Cat in the Hat | Dr. Seuss        | 8.99
+  3 | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from customers;
+id  | first_name | last_name 
+----+------------+-----------
+  1 | Jane       | Doe
+  2 | John       | Doe
+  3 | Bill       | Gates</code></pre>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99
+Bill       | Gates     | Go Dog Go          | P.D. Eastman     | 7.99
+Bill       | Gates     | The Cat in the Hat | Dr. Seuss        | 8.99
+Bill       | Gates     | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <p>
+    When you use the asterisk (*) for the
+        field names, all the fields are returned. As
+        you can see, the basic syntax for a
+        simple SQL SELECT looks like this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+select &lt;fields&gt; from &lt;tablename&gt;;</code></pre>
+   <h3>
+    Specifying fields while selecting all records from a table
+   </h3>
+   <p>
+    Suppose you don't want to show all the
+        fields from a table or view, you just
+        specify the fields separated by a comma. Here
+        is an example selecting fields from the sales_view:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select first_name,last_name,title from sales_view;
+first_name | last_name |       title        
+-----------+-----------+--------------------
+Jane       | Doe       | Go Dog Go
+Jane       | Doe       | The Cat in the Hat
+John       | Doe       | Go Dog Go
+John       | Doe       | Ender's Game
+Bill       | Gates     | Go Dog Go
+Bill       | Gates     | The Cat in the Hat
+Bill       | Gates     | Ender's Game</code></pre>
+   <p>
+    You can also specify fields in a different
+        order as well as shown next:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select title,author,first_name,last_name from sales_view;
+      title        |      author      | first_name | last_name 
+-------------------+------------------+------------+-----------
+Go Dog Go          | P.D. Eastman     | Jane       | Doe
+The Cat in the Hat | Dr. Seuss        | Jane       | Doe
+Go Dog Go          | P.D. Eastman     | John       | Doe
+Ender's Game       | Orson Scott Card | John       | Doe
+Go Dog Go          | P.D. Eastman     | Bill       | Gates
+The Cat in the Hat | Dr. Seuss        | Bill       | Gates
+Ender's Game       | Orson Scott Card | Bill       | Gates</code></pre>
+   <p>
+    Suppose you only want to return some of
+        the records from a table or view based
+        on some criteria. This is accomplished using the
+    <b>
+     where
+    </b>
+    clause discussed next.
+   </p>
+   <h3>
+    The Where Clause
+   </h3>
+   <p>
+    Let's look at how the
+    <b>
+     where
+    </b>
+    clause can
+        be used to filter the select query results.
+        The where clause is used to state a
+        test condition that must be matched for the
+        select query. Consider the following query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view where last_name='Doe';
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <p>
+    For this select query, the test condition that
+        must be matched is:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+last_name='Doe'</code></pre>
+   <p>
+    As you can see, the query only returns
+        sales that have customers with a last name
+        of Doe.
+   </p>
+   <p>
+    The test condition can consist of combinations of
+        boolean expressions. Here are some examples of such
+        combinations:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view where last_name='Doe' and price&gt;8;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view where author='Dr. Seuss' or author='P.D. Eastman';
+first_name | last_name |       title        |    author    | price 
+-----------+-----------+--------------------+--------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss    | 8.99
+John       | Doe       | Go Dog Go          | P.D. Eastman | 7.99
+Bill       | Gates     | Go Dog Go          | P.D. Eastman | 7.99
+Bill       | Gates     | The Cat in the Hat | Dr. Seuss    | 8.99</code></pre>
+   <p>
+    As you can see, the logical operators are
+        just
+    <b>
+     and
+    </b>
+    and
+    <b>
+     or
+    </b>
+    . In the first query,
+        the only records that are returned are those
+        that meet the condition that last_name='Doe' and price&gt;8
+        are both true. In the second query the
+        records returned are those that match either author='Dr.
+        Seuss' or author='P.D. Eastman'.
+   </p>
+   <p>
+    You can also use operators like
+    <b>
+     !=
+    </b>
+    ,
+    <b>
+     &gt;=
+    </b>
+    ,
+    <b>
+     &lt;=
+    </b>
+    to form the test conditions for a
+        where clause. Here are some examples of using
+        these other operators:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books where author!='Dr. Seuss';
+ id |    title     |      author      | price 
+-- -+--------------+------------------+-------
+  1 | Go Dog Go    | P.D. Eastman     | 7.99
+  3 | Ender's Game | Orson Scott Card | 9.99</code></pre>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books where price &gt;= 7.99;
+ id |       title        |      author      | price 
+----+--------------------+------------------+-------
+  1 | Go Dog Go          | P.D. Eastman     | 7.99
+  2 | The Cat in the Hat | Dr. Seuss        | 8.99
+  3 | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books where price &gt;= 7.99 and price &lt; 9;
+ id |       title        |    author    | price 
+----+--------------------+--------------+-------
+  1 | Go Dog Go          | P.D. Eastman | 7.99
+  2 | The Cat in the Hat | Dr. Seuss    | 8.99</code></pre>
+   <h3>
+    Like and wildcards - inexact matches
+   </h3>
+   <p>
+    The like operator is used with wildcards to
+        create test conditions that involve inexact maches. Consider
+        a database that returns the following results for
+        a select query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+carlot_db=&gt; select * from sales_view;
+ car_id | make   | model  | price    | cust_id | first_name | last_name | sex | sid 
+--------+--------+--------+----------+---------+------------+-----------+-----+-----
+      9 | Nissan | Maxima | 33495.00 |       1 | Jane       | Doe       | F   |   1
+      4 | Honda  | Accord | 24460.00 |       2 | John       | Doe       | M   |   2
+      2 | Toyota | Camry  | 23495.00 |       3 | Katherine  | Johnson   | F   |   3
+      9 | Nissan | Maxima | 33495.00 |       4 | Eric       | Raymond   | M   |   4
+      4 | Honda  | Accord | 24460.00 |       5 | Bill       | Gates     | M   |   5
+      6 | Honda  | Fit    | 17080.00 |       6 | Ada        | Lovelace  | F   |   6
+      5 | Honda  | Civic  | 19730.00 |       7 | Grace      | Hopper    | F   |   7
+      4 | Honda  | Accord | 24460.00 |       8 | Scott      | Berkun    | M   |   8</code></pre>
+   <p>
+    The like operator can be combined with the
+        wildcard for any sequence of characters,
+    <b>
+     %
+    </b>
+    .
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+carlot_db=&gt; select make,model,price,first_name,last_name,sex from sales_view where first_name like '%e';
+  make | model  | price    | first_name | last_name | sex 
+-------+--------+----------+------------+-----------+-----
+Nissan | Maxima | 33495.00 | Jane       | Doe       | F
+Toyota | Camry  | 23495.00 | Katherine  | Johnson   | F
+Honda  | Civic  | 19730.00 | Grace      | Hopper    | F</code></pre>
+   <p>
+    The
+    <b>
+     '%'
+    </b>
+    pattern will match any sequence of
+        characters for a string. So
+    <b>
+     '%e'
+    </b>
+    will match
+        any first_name that ends with the letter
+    <b>
+     'e'
+    </b>
+    .
+   </p>
+   <p>
+    You can also use the '_' pattern which
+        matches any single character. Here is a query
+        that uses the '_' pattern.
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+carlot_db=&gt; select make,model,price,first_name,last_name from sales_view where last_name like '_o%';
+  make | model  | price    | first_name | last_name 
+-------+--------+----------+------------+-----------
+Nissan | Maxima | 33495.00 | Jane       | Doe
+Honda  | Accord | 24460.00 | John       | Doe
+Toyota | Camry  | 23495.00 | Katherine  | Johnson
+Honda  | Fit    | 17080.00 | Ada        | Lovelace
+Honda  | Civic  | 19730.00 | Grace      | Hopper</code></pre>
+   <p>
+    The
+    <b>
+     '_o%'
+    </b>
+    pattern will match any last_name that
+        has a second letter that is
+    <b>
+     'o'
+    </b>
+    . As
+        you can see, all the returned rows have
+        a last_name with the second letter being an
+    <b>
+     'o'
+    </b>
+    . You can use more than one '_'
+        as part of the matching pattern.
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+carlot_db=&gt; select make,model,price,first_name,last_name from sales_view where last_name like '___e%';
+make  | model  | price    | first_name | last_name 
+------+--------+----------+------------+-----------
+Honda | Accord | 24460.00 | Bill       | Gates
+Honda | Fit    | 17080.00 | Ada        | Lovelace</code></pre>
+   <p>
+    Here the matching pattern for the last_name is:
+   </p>
+   <p>
+    '___e%'
+   </p>
+   <p>
+    That three underscores at the beginning of the
+        pattern mean that any last_name that has an
+        'e' for the fourth letter will match.
+   </p>
+   <p>
+    The
+    <b>
+     where
+    </b>
+    clause filters the records that are
+        returned. To sort the returned records, you use
+        the
+    <b>
+     order by
+    </b>
+    clause. The order by clause
+        is the next subject.
+   </p>
+   <h3>
+    The Order By Clause
+   </h3>
+   <p>
+    Besides filtering the results of a query using
+        the
+    <b>
+     where
+    </b>
+    clause, you can also sort the
+        results on a field or several fields using
+        the
+    <b>
+     order by
+    </b>
+    clause. The
+    <b>
+     order by
+    </b>
+    clause
+        must always come
+    <b>
+     after
+    </b>
+    the
+    <b>
+     where
+    </b>
+    clause if
+        a where clause is used.
+   </p>
+   <h4>
+    Sorting on one field
+   </h4>
+   <p>
+    The simplest cause of using the
+    <b>
+     order by
+    </b>
+    clause is to sort on one field. Consider
+        the following unsorted query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books;
+ id |       title        |      author      | price 
+----+--------------------+------------------+-------
+  1 | Go Dog Go          | P.D. Eastman     | 7.99
+  2 | The Cat in the Hat | Dr. Seuss        | 8.99
+  3 | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <p>
+    Let's modify this query by sorting on the
+        author field:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books order by author;
+ id |       title        |      author      | price 
+----+--------------------+------------------+-------
+  2 | The Cat in the Hat | Dr. Seuss        | 8.99
+  3 | Ender's Game       | Orson Scott Card | 9.99
+  1 | Go Dog Go          | P.D. Eastman     | 7.99</code></pre>
+   <p>
+    Note how the records are sorted by the
+        author field in alphabetical order. The default sort
+        order is ascending. If you want to sort
+        in descending order, you follow the field name
+        with the key word
+    <b>
+     desc
+    </b>
+    . This is shown
+        next:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books order by author desc;
+id |       title         |      author      | price 
+----+--------------------+------------------+-------
+  1 | Go Dog Go          | P.D. Eastman     | 7.99
+  3 | Ender's Game       | Orson Scott Card | 9.99
+  2 | The Cat in the Hat | Dr. Seuss        | 8.99</code></pre>
+   <p>
+    Notice how the records are sorted by author,
+        but in descending order. As another example, let's
+        sort the books table by price in descending
+        order. This is shown next:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from books order by price desc;
+ id |       title        |      author      | price 
+----+--------------------+------------------+-------
+  3 | Ender's Game       | Orson Scott Card | 9.99
+  2 | The Cat in the Hat | Dr. Seuss        | 8.99
+  1 | Go Dog Go          | P.D. Eastman     | 7.99</code></pre>
+   <h4>
+    Sorting by more than one field
+   </h4>
+   <p>
+    It is possible to sort by more than
+        one field. You separate the fields by commas
+        with the first field being the primary sort
+        key and the second field being the secondary
+        sort key. Consider first this unsorted query:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99
+Bill       | Gates     | Go Dog Go          | P.D. Eastman     | 7.99
+Bill       | Gates     | The Cat in the Hat | Dr. Seuss        | 8.99
+Bill       | Gates     | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <p>
+    Now, let's sort this by
+    <b>
+     last_name
+    </b>
+    , then by
+    <b>
+     title
+    </b>
+    :
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view order by last_name,title;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+Bill       | Gates     | Ender's Game       | Orson Scott Card | 9.99
+Bill       | Gates     | Go Dog Go          | P.D. Eastman     | 7.99
+Bill       | Gates     | The Cat in the Hat | Dr. Seuss        | 8.99</code></pre>
+   <p>
+    Note that this is primarily sorted by the
+    <b>
+     last_name
+    </b>
+    field. Then for each customer, the records
+        are sorted by the
+    <b>
+     title
+    </b>
+    of the book.
+        For example, look at Bill Gates' purchases. The
+        books he bought are listed in alphabetical order
+        by title. Notice that John Doe shows up
+        before Jane Doe. If you wanted Jane to
+        show up before John, we would need to
+        include
+    <b>
+     first_name
+    </b>
+    as one of the secondary sort
+        fields:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view order by last_name,first_name,title;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Bill       | Gates     | Ender's Game       | Orson Scott Card | 9.99
+Bill       | Gates     | Go Dog Go          | P.D. Eastman     | 7.99
+Bill       | Gates     | The Cat in the Hat | Dr. Seuss        | 8.99</code></pre>
+   <p>
+    Now, Jane Doe shows up before John Doe.
+   </p>
+   <h3>
+    Combining the where and order by clauses
+   </h3>
+   <p>
+    You can combine the
+    <b>
+     where
+    </b>
+    and
+    <b>
+     order by
+    </b>
+    clauses. The
+    <b>
+     where
+    </b>
+    clause must always come
+    <b>
+     before
+    </b>
+    the
+    <b>
+     order by
+    </b>
+    clause. Here is an example
+        of using both clauses:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view where last_name='Doe' order by price;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+   <p>
+    Here all the sales that involve the last
+        name of 'Doe' are shown sorted by the
+        price field in ascending order. If you wanted
+        Jane Doe's purchases to show first, you could
+        do the following:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+bookstore_db=&gt; select * from sales_view where last_name='Doe' order by first_name,price;
+first_name | last_name |       title        |      author      | price 
+-----------+-----------+--------------------+------------------+-------
+Jane       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+Jane       | Doe       | The Cat in the Hat | Dr. Seuss        | 8.99
+John       | Doe       | Go Dog Go          | P.D. Eastman     | 7.99
+John       | Doe       | Ender's Game       | Orson Scott Card | 9.99</code></pre>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module4.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module4/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:43 GMT -->
+</html>

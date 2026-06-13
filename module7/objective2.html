@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+ 
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module7/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:47 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module7.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    Objective 7.2 Querying a MongoDB database
+   </h2>
+   <p>
+    Assuming the database we built on the
+    <a href="objective1.html" target="_blank">
+     last page
+    </a>
+    . Let's do some queries:
+   </p>
+   <h3>
+    Querying a single collection
+   </h3>
+   <p>
+    We have already done some simple queries of
+        single collections. Let's go over that in a
+        little more detail. Just in case you have
+        stopped the Docker container,
+    <b>
+     mongo_cont
+    </b>
+    , here are the
+        steps to start that container and get back
+        inside the
+    <b>
+     registrations
+    </b>
+    database:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$ cd ~/Desktop/node_area/docker_mongo/docs/registrations
+$ docker start mongo_cont
+$ docker exec -it mongo_cont bash
+# cd registrations
+# mongo
+&gt; use registrations
+switched to db registrations</code></pre>
+   <p>
+    Here are some simple queries to show all
+        the documents in the three collections. The first
+        query is to find all the documents in
+        the
+    <b>
+     students
+    </b>
+    collection:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.students.find()
+{ "_id" : 1, "first_name" : "Jane", "last_name" : "Doe" }
+{ "_id" : 2, "first_name" : "John", "last_name" : "Doe" }
+{ "_id" : 3, "first_name" : "Bill", "last_name" : "Gates" }
+&gt;</code></pre>
+   <p>
+    Recall that leaving the arguments to the
+    <b>
+     find()
+    </b>
+    function will return all the documents in that
+        collection. The next query shows finding all the
+        documents in the
+    <b>
+     sections
+    </b>
+    collection:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.sections.find()
+{ "_id" : 1, "title" : "CSNT110", "credits" : 3 }
+{ "_id" : 2, "title" : "CSNT132", "credits" : 4 }
+{ "_id" : 3, "title" : "CSNT140", "credits" : 4 }
+{ "_id" : 4, "title" : "CSNT228", "credits" : 4 }
+{ "_id" : 5, "title" : "CSNT231", "credits" : 4 }
+&gt;</code></pre>
+   <p>
+    The next query will show finding all the
+        documents in the
+    <b>
+     student_section
+    </b>
+    collection:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.student_section.find()
+{ "_id" : 1, "student_id" : 1, "section_id" : 1 }
+{ "_id" : 2, "student_id" : 1, "section_id" : 2 }
+{ "_id" : 3, "student_id" : 2, "section_id" : 2 }
+{ "_id" : 4, "student_id" : 2, "section_id" : 3 }
+{ "_id" : 5, "student_id" : 3, "section_id" : 1 }
+&gt; </code></pre>
+   <p>
+    Let's do a query that finds all the
+        students with a last name of "Doe":
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.students.find({ "last_name": "Doe" })
+{ "_id" : 1, "first_name" : "Jane", "last_name" : "Doe" }
+{ "_id" : 2, "first_name" : "John", "last_name" : "Doe" }
+&gt; </code></pre>
+   <p>
+    This time, we pass an object to the
+    <b>
+     find()
+    </b>
+    function to get the documents that match
+        that condition. Let's do a query that gets
+        all the sections that have 4 credits:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.sections.find({ "credits" : 4 })
+{ "_id" : 2, "title" : "CSNT132", "credits" : 4 }
+{ "_id" : 3, "title" : "CSNT140", "credits" : 4 }
+{ "_id" : 4, "title" : "CSNT228", "credits" : 4 }
+{ "_id" : 5, "title" : "CSNT231", "credits" : 4 }
+&gt;</code></pre>
+   <p>
+    Finally, let's do a query that returns the
+        documents from the
+    <b>
+     student_section
+    </b>
+    collection fthat have a
+        student_id of 1:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.student_section.find({ "student_id": 1 })
+{ "_id" : 1, "student_id" : 1, "section_id" : 1 }
+{ "_id" : 2, "student_id" : 1, "section_id" : 2 }
+&gt;</code></pre>
+   <h3>
+    Querying multiple related collections
+   </h3>
+   <p>
+    Finally, let's see how we can run a
+        query that joins the
+    <b>
+     students
+    </b>
+    ,
+    <b>
+     sections
+    </b>
+    and
+    <b>
+     student_section
+    </b>
+    collections:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+&gt; db.student_section.aggregate([
+... { $lookup: { from: "students", localField: "student_id", foreignField: "_id", as: "Student"}},
+... { $lookup: { from: "sections", localField: "section_id", foreignField: "_id", as: "Section"}},
+... { $project: {"Student.first_name":true,"Student.last_name":true,"Section.title": true}}
+... ])
+{ "_id" : 1, "Student" : [ { "first_name" : "Jane", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT110" } ] }
+{ "_id" : 2, "Student" : [ { "first_name" : "Jane", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT132" } ] }
+{ "_id" : 3, "Student" : [ { "first_name" : "John", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT132" } ] }
+{ "_id" : 4, "Student" : [ { "first_name" : "John", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT140" } ] }
+{ "_id" : 5, "Student" : [ { "first_name" : "Bill", "last_name" : "Gates" } ], "Section" : [ { "title" : "CSNT110" } ] }
+&gt;</code></pre>
+   <p>
+    To try this out, it is probably best
+        to just copy lines 1-5 and use SHIFT-CTRL-V
+        to paste them into the Mongo environment. That
+        way, you will get the command in without
+        any typographical errors. Line 1 starts of the
+    <b>
+     aggregate()
+    </b>
+    function call on the
+    <b>
+     student_section
+    </b>
+    collection. The
+        argument to the
+    <b>
+     aggregate()
+    </b>
+    function is an array
+        that holds several JSON objects. In this case,
+        line 2 specifies a JSON object that consists
+        of a call the the
+    <b>
+     $lookup
+    </b>
+    function. Here
+        is that call spread out over several lines
+        so that you can see the parts more
+        clearly:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$lookup: {
+   from: "students",
+   localField: "student_id",
+   foreignField: "_id",
+   as: "Student"
+}</code></pre>
+   <p>
+    So, this is calling for a query from
+        the "students" collection where the "student_id" key from
+        a "student_section" object matches the "_id" key from
+        the "students" collection. The object obtained from this
+        match is given the alias, "Student".
+   </p>
+   <p>
+    So, looking back at line 3, you can
+        see that this line is returning an object
+        that is the result of querying the "sections"
+        collection with the "section_id" key of a "student_section"
+        object matching the "_id" key of the "sections"
+        collection. The object returned by this match is
+        given the alias, "Section".
+   </p>
+   <p>
+    Finally, line3 uses a call to the
+    <b>
+     $project
+    </b>
+    function. Here is that call spread out over
+        several lines:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+$project: {
+  "Student.first_name": true,
+  "Student.last_name": true,
+  "Section.title": true,
+}</code></pre>
+   <p>
+    This is just a function that will make
+        it so that the key:value pairs returned will
+        be the "first_name" from the "Student" alias, the
+        "last_name" from the "Student" alias, and the "title"
+        from the "Section" alias.
+   </p>
+   <p>
+    You can see that these are the key:value
+        pairs returned on lines 6-10. Lines 6-10 show
+        the objects that is similar to what is
+        displayed in a view that joins tables in
+        a relational database.
+   </p>
+   <p>
+    Here are two more examples of using aggregation
+        and $lookup. The first example is used to
+        return the objects that represent the students taking
+    <b>
+     CSNT132
+    </b>
+    :
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+&gt; db.student_section.aggregate([
+... { $lookup: { from: "students", localField: "student_id", foreignField: "_id", as: "Student"}},
+... { $lookup: { from: "sections", localField: "section_id", foreignField: "_id", as: "Section"}},
+... { $project: {"Student.first_name":true,"Student.last_name":true,"Section.title": true}},
+... { $match: {"Section.title": "CSNT132"}}
+... ])
+{ "_id" : 2, "Student" : [ { "first_name" : "Jane", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT132" } ] }
+{ "_id" : 3, "Student" : [ { "first_name" : "John", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT132" } ] }</code></pre>
+   <p>
+    Lines 1-4 are mostly the same as the
+        other lookup. The only difference is the comma
+        at the end of line 4 that is
+        needed because of the additional condition on line
+        5. Line 5 is similar to a
+    <b>
+     where
+    </b>
+    clause, in that if filters the results so
+        that only those with the "Section.title" key matching
+        "CNST132" will be returned.
+   </p>
+   <p>
+    The second example is used to return the
+        objects that represent the sections signed up for
+        by Jane Doe:
+   </p>
+   <pre class="line-numbers" data-line=""><code class="language-markup">
+&gt; db.student_section.aggregate([
+... { $lookup: { from: "students", localField: "student_id", foreignField: "_id", as: "Student"}},
+... { $lookup: { from: "sections", localField: "section_id", foreignField: "_id", as: "Section"}},
+... { $project: {"Student.first_name":true,"Student.last_name":true,"Student._id":true,"Section.title": true}},
+... { $match: {"Student._id": 1}}
+... ])
+{ "_id" : 1, "Student" : [ { "_id" : 1, "first_name" : "Jane", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT110" } ] }
+{ "_id" : 2, "Student" : [ { "_id" : 1, "first_name" : "Jane", "last_name" : "Doe" } ], "Section" : [ { "title" : "CSNT132" } ] }</code></pre>
+   <p>
+    Line 4 has been modified so that "Student._id"
+        is included in the projected objects. Line 5
+        just filters those objects so that the objects
+        returned are for "Student._id" equaling 1 (which is
+        Jane Doe's _id value).
+   </p>
+   <h3>
+    Querying before $lookup existed
+   </h3>
+   <p>
+    Before the
+    <b>
+     $lookup
+    </b>
+    was added, there was nothing
+        to join collections. In fact, many NoSQL databases
+        don't even have the concept of collections. So,
+        to store the data that we have, you
+        would have to store everything about a student
+        in one object. For Jane Doe, this would
+        be an example of how such an object
+        might be stored:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+{
+   _id: 1,
+   first_name: "Jane",
+   last_name: "Doe",
+   sections: [
+      {
+         _id: 100,
+         title: "CSNT110",
+         credits: 3
+      },
+      {
+        _id: 101,
+        title: "CSNT132",
+        credits: 4
+      }
+   ]
+}</code></pre>
+   <p>
+    For each "student" document like this, you would
+        have repeat information for any sections that are
+        signed up for by more than one student.
+        The data is not normalized. Instead, the data
+        is stored in a
+    <b>
+     hierarchical
+    </b>
+    fashion like this.
+        As you can imagine, having to query many
+        "student" documents like this to find the students
+        in the CSNT132 course would be tricky for
+        people coming from the relational database world.
+   </p>
+   <p>
+    This is why some people say that relational
+        data should not be store in NoSQL databases.
+        This has been one of the problems with
+        the Electronic Health Records (EHR) requirement for medical
+        insurance that comes from the Affordable Care Act.
+        Many hospitals and physicians uses systems like
+    <b>
+     Epic
+    </b>
+    (https://www.epic.com) to store patient records. Epic stores the
+        patient records in a hierarchical fashion in a
+        NoSQL database system called MUMPS. One of the
+        criticisms of Epic was raised in
+    <a href="https://medium.com/design-and-tech-co/how-google-ehr-could-fix-one-of-healthcares-epic-flaws-280036a988e3" target="_blank">
+     How Google EHR Could Fix One of Healthcare's
+        Epic Flaws
+    </a>
+    is that it has a poor
+        user interface.
+   </p>
+   <p>
+    Besides having a poor user interface, storing the
+        data in a hierarchical fashion where all the
+        documents are based on single patients, makes it
+        hard to perform queries that need to get
+        at multiple patients at once. For a given
+        patient, it is easy to find anything stored
+        in that patient's document providing you know the
+        key to lookup the value. But, if you
+        want to use data like this to find
+        out something like what percent of male Asians
+        in Hawaii have Type II diabetes, this is
+        harder to do. If that same data were
+        reorganized into a normalized relational database, that query
+        would be easy to do.
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+   </p>
+   <p>
+    This is another reason why it is important
+        for more people to become familiar with NoSQL
+        databases so that either they don't use NoSQL
+        databases to store relational data or they figure
+        out good ways to store the data in
+        a NoSQL database while providing the ability to
+        perform the type of queries needed.
+   </p>
+   <p>
+    <center>
+     ✴ ✴ ✴ ✴ ✴
+    </center>
+   </p>
+   <p>
+    When the major purpose of a database requires
+        accessing hierarchical data, then a NoSQL database makes
+        sense and will scale better than a relational
+        database. However, when you need to perform horizontal
+        queries of data that is stored in a
+        hierarchical fashion, this will involve recursive processes that
+        often are much slower than if the data
+        were stored in a relational database. At the
+        same time, storing data in NoSQL databases allow
+        the kind of scaling that will lend itself
+        well to machine learning processes. So, the challenge
+        of deciding between NoSQL and relational databases is
+        very much a hot topic at this point
+        in time.
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="module7.html">
+    Up
+   </a>
+  </div>
+ </body>
+
+<!-- Mirrored from www2.hawaii.edu/~takebaya/csnt280/module7/objective2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 08 Oct 2022 05:10:47 GMT -->
+</html>
