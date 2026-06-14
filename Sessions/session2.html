@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <link rel="stylesheet" href="../prism.css"
+         type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat"
+         rel="stylesheet" type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Anonymous Pro" 
+         rel="stylesheet" type="text/css"/>
+      <script src="../prism.js"></script>
+      <style>
+         body {
+            font-family: Montserrat;
+            font-size: 120%;
+            margin-left: 5px;
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Session 2</h1>
+      <h2>Tasks</h2>
+      <ul>
+         <li>
+            <h3>Conceptual, Logical and Physical Data Models</h3>
+            <a href="http://www2.hawaii.edu/~rogerm/csnt280/sessions/architect.html" 
+               target="_blank">Physical Model Review</a>
+         </li>
+         <li>
+            <h3>Review some Docker basics</h3>
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  $ cd ~/Desktop/docker_csnt280_linux
+                  $ docker-compose start
+                  $ docker-compose exec postgresql bash
+               </code>
+            </pre>
+            That will start the Docker containers and get us a root 
+            prompt inside the <b>postgresql</b> container.
+         </li>
+         <li>
+            <h3>Work on Lab1</h3>
+            Login as the superuser, <b>csnt280man</b> and create a 
+            database called "lab1_db".  password is <b>pgsql_man</b>
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  psql -U csnt280man -W csnt280db
+                  create database lab1_db owner bob;
+                  \q
+                  exit
+               </code>
+            </pre>
+            In a terminal in the host, create a directory called 
+            <b>lab1</b> inside the ~/Desktop/docker_csnt280_linux/docs 
+            directory.  Inside that lab1 directory create a file called 
+            "init.sql".
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  $ cd ~/Desktop/docker_csnt280_linux/docs
+                  $ mkdir lab1
+                  $ cd lab1
+                  $ geany init.sql &
+               </code>
+            </pre>
+            Look at the following 
+            <a href="http://www2.hawaii.edu/~takebaya/csnt280/module2/objective1.html" 
+               target="_blank">page</a> for background on creating a table
+               using a SQL script.
+            Here is a start to the "init.sql" file:
+            <pre class="line-numbers" data-line="">
+               <code class="language-sql">
+-- init.sql for lab1_db
+drop table if exists cars cascade;
+drop table if exists customers cascade;
+drop table if exists sales cascade;
+
+create table cars(
+
+);
+create table customers(
+
+);
+create table sales(
+
+);                  
+               </code>
+            </pre>
+            Once you complete "init.sql", you want to use <b>psql</b> 
+            to connect to "lab1_db" as <b>bob</b> and load "init.sql":
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  # cd /docs/lab1
+                  # psql -U bob -W lab1_db
+                  \i init.sql
+               </code>
+            </pre>
+         </li>
+         <li>
+            <h3>SQL Script advantages</h3>
+            <ul>
+               <li>Easy to make changes to table design</li>
+               <li>Facilitates moving database to another server</li>
+            </ul>
+         </li>
+         <li>
+            <h3>SQL Power Architect</h3>
+            While still inside the postgresql container, you want
+            to run SQL Power Architect.  Here is the 
+            <a href="architect.html" 
+               target="_blank">page</a> that goes into using SQL Power Architect
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  # cd ~/Desktop/architect-1.08
+                  # java -jar architect.jar
+               </code>
+            </pre>
+         </li>
+      </ul>
+   </body>
+</html>

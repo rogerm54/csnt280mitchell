@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <link rel="stylesheet" href="../prism.css"
+         type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat"
+         rel="stylesheet" type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Anonymous Pro" 
+         rel="stylesheet" type="text/css"/>
+      <script src="../prism.js"></script>
+      <style>
+         body {
+            font-family: Montserrat;
+            font-size: 120%;
+            margin-left: 5px;
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Session 7</h1>
+      <h2>Tasks</h2>
+      <ul>
+         <li>
+            <h3>Exam 1 during second session of Week 5</h3>
+            <a href="https://laulima.hawaii.edu/access/content/group/HON.20771.202310/exam_study_guides/exam1_study_guide.pdf" 
+               target="_blank">exam1_study_guide.pdf</a>
+         </li>
+         <li>
+            <h3>Review Lab 3</h3>
+         </li>
+         <li>
+            <h3>Start on Lab4</h3>
+            <ul>
+               <li>
+                  Create lab4_db using csnt280man user
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+psql -U csnt280man -W csnt280db
+create database lab4_db owner bob;
+               </code>
+            </pre>
+               </li>
+               <li>
+                  Make directory called lab4 inside 
+                  <b>&lt;main_docker_folder>/docs/</b>
+               </li>
+               <li>
+                  Create "init.sql" inside the lab4 folder.
+               </li>
+               <li>
+                  Include "init.sql" in the lab4_db:
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+psql -U bob -W lab4_db
+\i init.sql
+               </code>
+            </pre>
+               </li>
+               <li>
+                  Start modifying "parse_raw_data.py" to create SQL INSERT
+                  statements.  Use Python lists and dictionaries to 
+                  store data appropriately.
+               </li>
+            </ul>
+         </li>
+      </ul>
+   </body>
+</html>

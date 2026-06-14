@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <link href="https://fonts.googleapis.com/css?family=Anonymous Pro" 
+         rel="stylesheet" type="text/css"/>
+      <style>
+         pre {
+            font-family : "Anonymous Pro";
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Session 14</h1>
+      <h2>Tasks</h2>
+      <ol>
+         <li>
+            Complete Lab 6<br />
+            <a href="https://laulima.hawaii.edu/access/content/group/HON.25406.202030/labs/lab6/lab6.html"
+               target="_blank">lab6.html</a><br />
+            <ul type="disc">
+               <li>
+                  Create file <b>add_views.sql</b> that adds views that
+                  1) show the survey and its questions and 2) show the 
+                  answers to the questions by using this:
+<pre>
+-- add_views.sql
+drop view survey_questions_view cascade;
+drop view question_answers_view cascade;
+
+create view survey_questions_view as
+   select surveys.id, surveys.title, surveys.survey_code,
+   questions.question_text from surveys join
+   questions on surveys.id=questions.survey_id;
+
+create view question_answers_view as
+   select questions.id, questions.survey_id, 
+   questions.question_text,
+   answers.num1, answers.num2, answers.num3,
+   answers.num4, answers.num5 from questions
+   join answers on questions.id=answers.question_id;
+</pre>
+                  Use these views to verify that your data was inserted
+                  correctly.
+               </li>
+               <li>
+                  Create file <b>query_funcs.sql</b> that will have a 
+                  function called <b>get_results()</b> that is patterned after
+                  the get_results() function from this 
+                  <a href="http://www2.hawaii.edu/~takebaya/cent280/sql_functions/plpgsql.html"
+                     target="_blank">link</a><br />
+                  Modify <b>get_results()</b> so that it uses a parameter
+                  <b>_survey_code</b> so that the results can be returned
+                  for a given survey_code.  Also, modify the function so 
+                  that it uses rec.num4 and rec.num5 (not just up to 
+                  rec.num3)
+               </li>
+            </ul>
+         </li>
+         <li>
+            Start on Lab 7<br />
+            <a href="https://laulima.hawaii.edu/access/content/group/HON.25406.202030/labs/lab7/lab7.html" 
+               target="_blank">lab7.html</a>
+         </li>
+      </ol>
+   </body>
+</html>

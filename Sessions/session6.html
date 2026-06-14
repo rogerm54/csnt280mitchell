@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <link rel="stylesheet" href="../prism.css"
+         type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat"
+         rel="stylesheet" type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Anonymous Pro" 
+         rel="stylesheet" type="text/css"/>
+      <script src="../prism.js"></script>
+      <style>
+         body {
+            font-family: Montserrat;
+            font-size: 120%;
+            margin-left: 5px;
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Session 6</h1>
+      <h2>Tasks</h2>
+      <ul>
+         <li>
+            <h3>Review SQL Commands</h3>
+            <ol type="A">
+               <li>
+                  <h4>DROP</h4>
+                  <pre>
+                     <code class="language-markup" 
+                        style="font-family: Anonymous Pro;">
+drop database &lt;database_name>;
+drop table if exists &lt;table_name> cascade;
+                     </code>
+                  </pre>
+               </li>
+               <li>
+                  <h4>CREATE</h4>
+                  <pre>
+                     <code class="language-markup" 
+                        style="font-family: Anonymous Pro;">
+create database &lt;database_name> owner &lt;username>;
+create table &lt;table_name> ();
+create or replace view &lt;view_name> as select ...;
+                     </code>
+                  </pre>
+               </li>
+               <li>
+                  <h4>SELECT</h4>
+                  <pre>
+                     <code class="language-markup" 
+                        style="font-family: Anonymous Pro;">
+select * from &lt;table_name>;
+select field1, field2, field3 from &lt;table_name>;
+select * from &lt;table_name> where &lt;criteria>;
+                     </code>
+                  </pre>
+               </li>
+               <li>
+                  <h4>INSERT</h4>
+                  <pre>
+                     <code class="language-markup" 
+                        style="font-family: Anonymous Pro;">
+insert into &lt;table_name> (field1, field2, field3, ...) values 
+   (val1, val2, val3, ...);
+                     </code>
+                  </pre>
+               </li>
+            </ol>
+         </li>
+         <li>
+            <h3>Complete Lab3</h3>
+               Continue to make use of lists and dictionaries to 
+               process the departments, and then users data.  
+               <ul>
+                  <li>
+                     <b>Lists</b> - to help avoid storing duplicate records
+                  </li>
+                  <li>
+                     <b>Dictionaries</b> - to look up id values from 
+                     tables with previously inserted records.
+                  </li>
+               </ul>
+         </li>
+         <li>
+            <h3>Work on Python programs that connect to PostgreSQL databases</h3>
+            <a href="http://www2.hawaii.edu/~takebaya/cent280/python/python.html" 
+               target="_blank">Using Python to connect to PostgreSQL databases</a>
+            <ul>
+               <li>
+                  Console-based programs using <b>psycopg2</b>
+               </li>
+               <li>
+                  GUI programs using <b>PySide</b> and <b>psycopg2</b>.
+                  Connect to lab3_db database using such a program.
+               </li>
+            </ul>
+         </li>
+      </ul>
+   </body>
+</html>

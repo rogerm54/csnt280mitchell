@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <link rel="stylesheet" href="../prism.css"
+         type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Montserrat"
+         rel="stylesheet" type="text/css">
+      <link href="https://fonts.googleapis.com/css?family=Anonymous Pro" 
+         rel="stylesheet" type="text/css"/>
+      <script src="../prism.js"></script>
+      <style>
+         body {
+            font-family: Montserrat;
+            font-size: 120%;
+            margin-left: 5px;
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Session 1</h1>
+      <h2>Tasks</h2>
+      <ul>
+         <li>
+            Go over syllabus<br>
+         </li>
+         <li>
+            <b>Download</b> csnt280 folder files to your Documents folder.
+         </li>
+         <li>
+            <b>Create</b> Virtualbox virtual machine for course.<br>
+            <b>Login</b> to VM (csnt280/csnt_280)
+         </li>
+         <li>
+            Start up main Docker containers. <br>
+            Go into the <b>postgresql</b> Docker container
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  cd ~/Desktop/docker_csnt280_linux
+                  docker-compose start
+                  docker-compose exec postgresql bash
+               </code>
+            </pre>
+            Run the following commands:
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  psql -U bob -W bobdb
+                  \d
+                  select * from students;
+               </code>
+            </pre>
+         </li>
+         <li>
+            Stop Docker containers:
+            <pre>
+               <code class="language-markup" 
+                  style="font-family: Anonymous Pro;">
+                  cd ~/Desktop/docker_csnt280_linux
+                  docker-compose stop
+               </code>
+            </pre>
+         </li>
+      </ul>
+   </body>
+</html>
