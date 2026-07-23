@@ -25,21 +25,19 @@
             Go over syllabus<br>
          </li>
          <li>
-            <b>Download</b> csnt280 folder files to your Documents folder.
+            <b>Copy</b> csnt280u folder files to your USB memory stick.
          </li>
          <li>
-            <b>Create</b> Virtualbox virtual machine for course.<br>
-            <b>Login</b> to VM (csnt280/csnt_280)
+            <b>Open</b> VMware virtual machine for course.<br>
+            <b>Login</b> to VM (bob / somepass)
          </li>
          <li>
             Start up main Docker containers. <br>
-            Go into the <b>postgresql</b> Docker container
+            Go into the <b>postgresql</b>
             <pre>
                <code class="language-markup" 
                   style="font-family: Anonymous Pro;">
-                  cd ~/Desktop/docker_csnt280_linux
-                  docker-compose start
-                  docker-compose exec postgresql bash
+                  cd ~/Desktop/docs
                </code>
             </pre>
             Run the following commands:
@@ -49,16 +47,7 @@
                   psql -U bob -W bobdb
                   \d
                   select * from students;
-               </code>
-            </pre>
-         </li>
-         <li>
-            Stop Docker containers:
-            <pre>
-               <code class="language-markup" 
-                  style="font-family: Anonymous Pro;">
-                  cd ~/Desktop/docker_csnt280_linux
-                  docker-compose stop
+                  exit
                </code>
             </pre>
          </li>
