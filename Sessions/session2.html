@@ -46,7 +46,7 @@
             <pre>
                <code class="language-markup" 
                   style="font-family: Anonymous Pro;">
-                  $ cd ~/Desktop/docker_csnt280_linux/docs
+                  $ cd ~/Desktop/docs
                   $ mkdir lab1
                   $ cd lab1
                   $ geany init.sql &
@@ -80,7 +80,7 @@ create table sales(
             <pre>
                <code class="language-markup" 
                   style="font-family: Anonymous Pro;">
-                  # cd /docs/lab1
+                  # cd ~/Desktop/docs/lab1
                   # psql -U bob -W lab1_db
                   \i init.sql
                </code>
@@ -94,16 +94,14 @@ create table sales(
             </ul>
          </li>
          <li>
-            <h3>SQL Power Architect</h3>
-            While still inside the postgresql container, you want
-            to run SQL Power Architect.  Here is the 
-            <a href="architect.html" 
-               target="_blank">page</a> that goes into using SQL Power Architect
+            <h3>E/R Diagram</h3>
+            Use a tool such as dbeaver to connect to the Lab1 database
+            and generate an E/R diagram. To run dbeaver, enter
             <pre>
                <code class="language-markup" 
                   style="font-family: Anonymous Pro;">
                   # cd ~/Desktop/architect-1.08
-                  # java -jar architect.jar
+                  > dbeaver
                </code>
             </pre>
          </li>
