@@ -349,7 +349,7 @@ book_id integer references books(id)</code></pre>
     The Docker container for postgres created using docker-compose
         has a Java application called
     <b>
-     SQL Power Architect
+     DBeaver
     </b>
     .
         This application can connect to a variety of
@@ -430,21 +430,44 @@ CREATE VIEW</code></pre>
     .
    </p>
    <h4>
-    Starting up SQL Power Architect
+    Starting up DBeaver
    </h4>
    <p>
     While still in the root prompt, run the
         following commands:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-# cd ~/Desktop/architect-1.0.8/
-# java -jar architect.jar</code></pre>
+$ cd ~/Desktop/docs/bookit
+$ dbeaver</code></pre>
+    Go to Connections =&gt; Database Connection Manager. Click
+        on the
+    <b>
+     JDBC Drivers
+    </b>
+    button:
+   </p>
+   <p>
+    <img alt="dialog box for the database connection
+        manager" src="dbeaver/dbeaver01.png"/>
+   </p>
+   <p>
+    When the next dialog box pops up, select
+    <b>
+     PostgreSQL
+    </b>
+    on the left:
+   </p>
+   <p>
+    <img alt="dialog box allowing the add of
+        a jdbc driver" src="dbeaver/dbeaver0.png"/>
+   </p>
+   <p>
     Go to Connections =&gt; Add Source Connection =&gt;
         New connection. Set the following values:
    </p>
    <p>
     <img alt="dialog box showing settings for connecting
-        to the bkstore_db datase" src="dbeaver/dbeaver01.png"/>
+        to the bookit_db datase" src="dbeaver/dbeaver03.png"/>
    </p>
    <p>
     That is set the following:
@@ -454,7 +477,7 @@ CREATE VIEW</code></pre>
     <b>
      Connection Name:
     </b>
-    :bkstore_db
+    :bookit_db
     <br/>
    </p>
    <p>
@@ -463,6 +486,9 @@ CREATE VIEW</code></pre>
     </b>
     PostgreSQL
     <br/>
+    <img alt="screen shot showing the posgres db selection
+        diagram for the bkstore_db database" border="1" src="dbeaver/dbeaver02.png"/>
+   </p>
    </p>
    <p>
     <b>
@@ -497,49 +523,14 @@ CREATE VIEW</code></pre>
     <br/>
    </p>
    <p>
-    Then click on the
-    <b>
-     Test Connection
-    </b>
-    button:
-   </p>
-   <p>
-    <img alt="dialog box showing that the database
-        connection works" src="connection_success.png"/>
-   </p>
-   <p>
-    Click OK. On the left side, right-click on
-        the
-    <b>
-     bkstore_db
-    </b>
-    item and select
-    <b>
-     Expand All Children
-    </b>
-    :
-   </p>
-   <p>
-    <img alt="screen shot showing how to expand
-        all children for the bkstore_db database" border="1" src="expand_children.png"/>
+    Click Finish.
    </p>
    <p>
     Drag the
     <b>
      books (TABLE)
     </b>
-    item into the playpen
-        area. When you see a dialog asking for
-        the data type to set for the title,
-        checkk
-    <b>
-     Apply to all
-    </b>
-    and then Ok.
-   </p>
-   <p>
-    <img alt="screen shot showing how to apply
-        the blob type for all the text fields" border="1" src="choose_blob.png"/>
+    item under tha Diagram tab.
    </p>
    <p>
     Drag over the
@@ -551,11 +542,6 @@ CREATE VIEW</code></pre>
      customers
         (TABLE)
     </b>
-    . Apply the BLOB type to all the
-        text fields for customers. Note how the relationship
-        lines show up automatically and how they depict
-        one-to-many relationships.
-   </p>
    <p>
     <img alt="screen shot showing the entity relationship
         diagram for the bkstore_db database" border="1" src="dbeaver/dbeaver04.png"/>
@@ -574,10 +560,6 @@ CREATE VIEW</code></pre>
         screen shot like the one shown below makes
         for a useful diagram when you are designing
         queries for this database.
-   </p>
-   <p>
-    <img alt="screen shot showing the tables and
-        views for the bkstore_db database" border="1" src="all_erd.png"/>
    </p>
    <p>
     The next steps would be to insert some
