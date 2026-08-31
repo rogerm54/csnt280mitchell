@@ -342,17 +342,17 @@ book_id integer references books(id)</code></pre>
         foreign key constraint created by line 26.
    </p>
    <p>
-    <span id="sql_power_architect">
+    <span id="dbeaver">
     </span>
    </p>
    <h3>
-    Using SQL Power Architect to create an entity relationship diagram
+    Using DBeaver to create an entity relationship diagram
    </h3>
    <p>
-    The Docker container for postgres created using docker-compose
-        has a Java application called
+    You can use
+        an application called
     <b>
-     SQL Power Architect
+     DBeaver
     </b>
     .
         This application can connect to a variety of
@@ -366,8 +366,8 @@ book_id integer references books(id)</code></pre>
         do this, start by doing the following:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ mkdir ~/Desktop/docker_cent280/docs/physical_model
-$ cd ~/Desktop/docker_cent280/docs/physical_model</code></pre>
+$ mkdir ~/Desktop/docs/bookit
+$ cd ~/Desktop/docs/bookit</code></pre>
    <p>
     Create the file "init.sql" shown above by starting
         up geany and copying and pasting from the
@@ -377,38 +377,36 @@ $ cd ~/Desktop/docker_cent280/docs/physical_model</code></pre>
 $ geany init.sql</code></pre>
    <p>
     Once you have saved that file, quit out
-        of Geany and get the Docker containers associated
-        with docker-compose started:
+        of Geany
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ cd ~/Desktop/docker_cent280
+$ cd ~/Desktop/docs/bookit
 $ docker-compose start</code></pre>
    <p>
-    Enter into the postgres Docker container and create
-        a database called "bkstore_db" that is owned by
+    Create
+        a database called "bookit_db" that is owned by
         'bob':
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ docker-compose exec postgresql bash
-# psql -U cent280man -W cent280db
+$ psql -U csnt280u -W csnt280db
 Password: 
 psql (11.5 (Debian 11.5-1.pgdg90+1))
 Type "help" for help.
 
-cent280db=# create database bkstore_db owner bob;
+csnt280db=# create database bookit_db owner bob;
 CREATE DATABASE
-cent280db=# \q</code></pre>
+csnt280db=# \q</code></pre>
    <p>
-    From the root prompt run the following commands:
+    Run the following commands:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-# cd /home/physical_model/
-# psql -U bob -W bkstore_db
+$ cd ~/Desktop/docs/bookit
+$ psql -U bob -W bkstore_db
 Password: 
 psql (11.5 (Debian 11.5-1.pgdg90+1))
 Type "help" for help.
 
-bkstore_db=&gt; \i init.sql 
+bookit_db=&gt; \i init.sql 
 DROP TABLE
 psql:init.sql:3: NOTICE: table "books" does not exist, skipping
 DROP TABLE
@@ -426,71 +424,15 @@ CREATE VIEW</code></pre>
     .
    </p>
    <h4>
-    Starting up SQL Power Architect
+    Starting up DBeaver
    </h4>
    <p>
     While still in the root prompt, run the
         following commands:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-# cd /usr/local/architect-1.0.8/
-# java -jar architect.jar</code></pre>
-   <p>
-    If you see an error message that says
-        "Can't connect to X11 window server", you need
-        to open another terminal and run the following
-        command:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ xhost + SI:localuser:root</code></pre>
-   <p>
-    To make it so that you don't have
-        to enter this command again, do the following:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ cd ~
-$ geany .bashrc</code></pre>
-   <p>
-    Add this line to the end of that
-        file:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-xhost + SI:localuser:root</code></pre>
-   <p>
-    Save the file and run the following command:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-source ~/.bashrc</code></pre>
-   <p>
-    Go back to your root prompt inside the
-        postgresql Docker container and try starting up SQL
-        Power Architect again. The first time the SQL
-        Power Architect is run, the following dialog box
-        pops up:
-   </p>
-   <p>
-    <img alt="dialog box showing that pl.ini is
-        missing" src="missing_pl_ini.png"/>
-   </p>
-   <p>
-    Click on the
-    <b>
-     Create
-    </b>
-    button. You will get
-        a welcome screen. Make sure that you turn
-        off the checkbox that says
-    <b>
-     Show this Welcome
-        Screen in the future
-    </b>
-    and click on Close.
-   </p>
-   <p>
-    <img alt="welcome screen when first staring SQL
-        Power Architect" src="welcome_sql.png"/>
-   </p>
-   <p>
+$ cd ~/Desktop/docs/bookit
+$ dbeaver</code></pre>
     Go to Connections =&gt; Database Connection Manager. Click
         on the
     <b>
@@ -500,7 +442,7 @@ source ~/.bashrc</code></pre>
    </p>
    <p>
     <img alt="dialog box for the database connection
-        manager" src="add_jdbc.png"/>
+        manager" src="dbeaver/dbeaver01.png"/>
    </p>
    <p>
     When the next dialog box pops up, select
@@ -511,27 +453,7 @@ source ~/.bashrc</code></pre>
    </p>
    <p>
     <img alt="dialog box allowing the add of
-        a jdbc driver" src="jdbc_drivers.png"/>
-   </p>
-   <p>
-    Click on the
-    <b>
-     Add JAR
-    </b>
-    button. When the
-        open file dialog box comes up, navigate to
-        /usr/local/architect-1.0.8/jdbc. Select the file "postgresql-42.25.jar" and click
-    <b>
-     Open
-    </b>
-    .
-        Remove the other jar file "postgresql-8.2-506.jdbc3.jar" by selecting
-        it and clicking on the
-    <b>
-     Remove JAR
-    </b>
-    button.
-        Then, click OK. Then, click Close.
+        a jdbc driver" src="dbeaver/dbeaver0.png"/>
    </p>
    <p>
     Go to Connections =&gt; Add Source Connection =&gt;
@@ -539,7 +461,7 @@ source ~/.bashrc</code></pre>
    </p>
    <p>
     <img alt="dialog box showing settings for connecting
-        to the bkstore_db datase" src="new_connection_settings.png"/>
+        to the bookit_db datase" src="dbeaver/dbeaver03.png"/>
    </p>
    <p>
     That is set the following:
@@ -549,7 +471,7 @@ source ~/.bashrc</code></pre>
     <b>
      Connection Name:
     </b>
-    :bkstore_db
+    :bookit_db
     <br/>
    </p>
    <p>
@@ -558,6 +480,9 @@ source ~/.bashrc</code></pre>
     </b>
     PostgreSQL
     <br/>
+    <img alt="screen shot showing the posgres db selection
+        diagram for the bkstore_db database" border="1" src="dbeaver/dbeaver02.png"/>
+   </p>
    </p>
    <p>
     <b>
@@ -592,49 +517,14 @@ source ~/.bashrc</code></pre>
     <br/>
    </p>
    <p>
-    Then click on the
-    <b>
-     Test Connection
-    </b>
-    button:
-   </p>
-   <p>
-    <img alt="dialog box showing that the database
-        connection works" src="connection_success.png"/>
-   </p>
-   <p>
-    Click OK. On the left side, right-click on
-        the
-    <b>
-     bkstore_db
-    </b>
-    item and select
-    <b>
-     Expand All Children
-    </b>
-    :
-   </p>
-   <p>
-    <img alt="screen shot showing how to expand
-        all children for the bkstore_db database" border="1" src="expand_children.png"/>
+    Click Finish.
    </p>
    <p>
     Drag the
     <b>
      books (TABLE)
     </b>
-    item into the playpen
-        area. When you see a dialog asking for
-        the data type to set for the title,
-        checkk
-    <b>
-     Apply to all
-    </b>
-    and then Ok.
-   </p>
-   <p>
-    <img alt="screen shot showing how to apply
-        the blob type for all the text fields" border="1" src="choose_blob.png"/>
+    item under tha Diagram tab.
    </p>
    <p>
     Drag over the
@@ -646,14 +536,9 @@ source ~/.bashrc</code></pre>
      customers
         (TABLE)
     </b>
-    . Apply the BLOB type to all the
-        text fields for customers. Note how the relationship
-        lines show up automatically and how they depict
-        one-to-many relationships.
-   </p>
    <p>
     <img alt="screen shot showing the entity relationship
-        diagram for the bkstore_db database" border="1" src="entity_relationships_bkstore.png"/>
+        diagram for the bkstore_db database" border="1" src="dbeaver/dbeaver04.png"/>
    </p>
    <p>
     Although we already drew something like this with
@@ -669,10 +554,6 @@ source ~/.bashrc</code></pre>
         screen shot like the one shown below makes
         for a useful diagram when you are designing
         queries for this database.
-   </p>
-   <p>
-    <img alt="screen shot showing the tables and
-        views for the bkstore_db database" border="1" src="all_erd.png"/>
    </p>
    <p>
     The next steps would be to insert some
