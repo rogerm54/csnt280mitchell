@@ -78,39 +78,9 @@ create or replace view sales_view as
    books.title, books.author, books.price from
    customers join sales on customers.id=sales.customer_id 
    join books on sales.book_id=books.id;</code></pre>
+
    <p>
-    Check to see if the postgres_container is running
-        by typing:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-docker container ls</code></pre>
-   <p>
-    If that container is not running, start it
-        up using:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-docker start postgres_container</code></pre>
-   <p>
-    To run the "bookstore_db.sql" script, start by entering
-        into the postgres_container container:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ cd ~/Desktop/docker_postgres
-$ docker exec -it postgres_container bash</code></pre>
-   <p>
-    This will open up a root prompt inside
-        the
-    <b>
-     /docs
-    </b>
-    directory. Check to see that "bookstore_init.sql"
-        is in that directory:
-   </p>
-   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-root@248048aee1e8:/docs# ls
-bookstore_init.sql</code></pre>
-   <p>
-    Once you have verified this, use
+    Use
     <b>
      psql
     </b>
