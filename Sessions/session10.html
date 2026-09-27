@@ -18,25 +18,16 @@
             <ul type="disc">
                <li>
                   Start on "helpers.php".  Locate this file inside the
-                  <b>{docker_folder}/docs/project1</b>
+                  <b>~/Desktop/docs/project1</b>
                   folder.
                </li>
                <li>
-                  Recall that the IP address to the PostgreSQL database server can be 
-                  obtained using:
-<pre>
-docker network ls
-</pre>
-                  Find the first six characters of the docker_csnt280_linux_default network
-                  Then, use:
-<pre>
-docker network inspect &lt;networkid> | grep -i gateway
-</pre>
-                  to show that IP address.  Then, use the following pattern:
+
+                  To connect to the database, use the following code:
 <pre>
 &lt;?php
    function connect() {
-      $pdoString = "pgsql:host='172.19.0.1' dbname='proj1_db " .
+      $pdoString = "pgsql:host='127.0.0.1' dbname='proj1_db " .
          " user='bob' password='somepass'";
       $pdo = new PDO($pdoString);
       return $pdo;
@@ -47,12 +38,12 @@ docker network inspect &lt;networkid> | grep -i gateway
                </li>
                <li>
                   Test the connect() function in "helpers.php" by creating a folder inside
-                  <b>{docker folder}/docs/csnt280</b>
+                  <b>~/Desktop/docs/csnt280</b>
                   called "project1".  Create a file called "test_connect.php" with the 
                   following contents:
 <pre>
 &lt;php>
-   require_once('../../project1/helpers.php');
+   require_once('./project1/helpers.php');
    $pdo = connect();
    if (!$pdo) {
       die("Could not connect");
@@ -62,7 +53,6 @@ docker network inspect &lt;networkid> | grep -i gateway
 </pre>
                    Run this file from within the php-apache container:
 <pre>
-docker-compose exec php-apache bash
 cd project1
 php -l test_connect.php
 php -f test_connect.php
