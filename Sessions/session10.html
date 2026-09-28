@@ -18,7 +18,7 @@
             <ul type="disc">
                <li>
                   Start on "helpers.php".  Locate this file inside the
-                  <b>~/Desktop/docs/project1</b>
+                  <b>~/Desktop/docs/project1/proj1web</b>
                   folder.
                </li>
                <li>
@@ -38,12 +38,12 @@
                </li>
                <li>
                   Test the connect() function in "helpers.php" by creating a folder inside
-                  <b>~/Desktop/docs/csnt280</b>
-                  called "project1".  Create a file called "test_connect.php" with the 
+                  <b>~/Desktop/docs/project1</b>
+                  called "proj1web".  Create a file called "test_connect.php" with the 
                   following contents:
 <pre>
 &lt;php>
-   require_once('./project1/helpers.php');
+   require_once('./helpers.php');
    $pdo = connect();
    if (!$pdo) {
       die("Could not connect");
@@ -53,7 +53,7 @@
 </pre>
                    Run this file by executing the following:
 <pre>
-cd ~/Desktop/docs/project1
+cd ~/Desktop/docs/project1/proj1web
 php -l test_connect.php
 php -f test_connect.php
 </pre>
