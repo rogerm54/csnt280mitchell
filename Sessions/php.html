@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="../prism.css" />
+    <script type="text/javascript" src="../prism.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <a href="../index.html">Home</a>
+    </div>
+    <!-- main begins -->
+    <div id="main">
+      <h1>Introduction to PHP</h1>
+      <p>
+        PHP (PHP: Hypertext Preprocessor) is a scripting language
+        that was designed for creating active web pages.  It originated
+        in 1995 and has been widely used for a number of years. 
+        Although other ways of creating web pages (JSP, ASP and Ruby on Rails) 
+        have come about more recently, PHP is still used in a large
+        number (over 70%) of web sites.
+      </p>
+      <h2>Syntax, variables</h2>
+      <p>
+        The syntax for the PHP language is similar to C or Java, in that
+        every statement ends with a semicolon, and indentation is
+        recommended but not required.  Blocks are enclosed in
+        curly braces ({ }) like C and Java.
+      </p>
+      <p>
+        Variables in PHP must start with a <b>$</b> symbol.  Like other
+        scripting languages (like Perl or Python), variables in PHP are
+        duck-typed.  This means that the type of a variable in PHP is
+        determined by how the variable is used.  Consider the
+        following examples:
+      </p>
+      <pre><code class="language-php">
+$count = 5; // an integer 
+$name = "John Doe"; // a string</code></pre>
+      <center> &#x2734 &#x2734 &#x2734 &#x2734 &#x2734</center>
+      <p>
+        Programmers coming from other languages will often need to
+        get used to the requirement that all variables begin with the
+        <b>$</b> symbol in PHP.  A very common place to make this mistake
+        is when defining the range over which a <b>for</b> loop will
+        iterate.  Don't forget to use <b>$i</b> instead of <b>i</b>:
+      </p>
+      <pre><code class="language-php">
+for ($i = 0; $i < 10; $i++) { }</code></pre>
+      <center> &#x2734 &#x2734 &#x2734 &#x2734 &#x2734</center>
+      <h2>Simple output</h2>
+      <p>
+        To output something to a web page, you can use the <b>echo</b>
+        command or the <b>print()</b> command.  Besides the <b>print()</b>
+        function requiring parentheses around the arguments, there
+        is little difference between these two functions.  Most PHP
+        programmers use the <b>echo</b> function. Here are some
+        simple examples of using the echo command.
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  echo "Hello\n"; 
+  $name = "John Doe"; 
+  echo "Hi $name\n";
+?></code></pre>
+      <p>
+        Line 3 defines a variable called <b>$name</b>.  Line 4 makes
+        use of <em>variable interpolation</em> to substitute in
+        the <b>value</b> of the variable when a variable name is enclosed
+        in double quotes.  Here is the output of this program when run
+        from the command line:
+      </p>
+      <pre><code class="language-markup">
+$ php -f echo.php
+Hello
+Hi John Doe</code></pre>
+      <h3>Difference between single and double quotes</h3>
+      <p>
+        When specifying PHP strings, the use of single and double
+        quotes have different meanings.  Single quotes are used for
+        literal strings.  Double quotes are used if you want <em>variable
+        interpolation</em> to take place in the string.  Double quotes are
+        also needed if you are using escape codes like <b>\n</b> (new line)
+        and <b>\t</b> (tabs). The following PHP
+        program shows the difference between using single and
+        double quotes for a string.
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php 
+  $name = "John Doe"; 
+  echo "Hello $name" . "&lt;br />\n"; 
+  echo 'Hello $name' . "\n"; 
+?>></code></pre>
+      <p>
+        Line 3 uses double quotes, so the value for <b>$name</b> is
+        substituted.
+        Line 4 uses single quotes, so the literal string is printed.
+        This is shown running the program at the command line:
+      </p>
+      <pre><code class="language-markup">
+$ php -f echo2.php
+Hello John Doe<br />
+Hello $name</code></pre>
+      <h4>The concatenation operator is the dot (.)</h4>
+      <p>
+        Looking back at the previous code, note on lines 3 and 4, that
+        the operator for concatenation is the dot (.).  The + operator
+        in PHP is only used to add numbers.  This is different from
+        languages like Python, Java or C.
+      </p>
+      <center> &#x2734 &#x2734 &#x2734 &#x2734 &#x2734</center>
+      <p>
+        Be careful when trying to concatenate variables in PHP.
+        If you try to use the + operator to concatenate strings, 
+        this will not generate a syntax error.  But, the result will
+        not be what you wanted.  As long as you use the dot (.)
+        operator, you can contenate strings with numbers.  The
+        numbers will be converted to strings and then concatenated,
+        similar to what happens in Java.  See the following example:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  $x = "hot";
+  $y = "dog";
+  echo $x + $y; // don't do this
+  echo "\n";
+  echo $x . $y;
+  echo "\n";
+  $n = 5;
+  echo $x . $n . "\n";
+?></code></pre>
+      <p>
+        When run at the command line, this is what is produced:
+      </p>
+      <pre><code class="language-markup">
+$ php -f test.php
+0
+hotdog
+hot5</code></pre>
+      <center> &#x2734 &#x2734 &#x2734 &#x2734 &#x2734</center>
+      <h2>Arrays in PHP</h2>
+      <p>
+        PHP arrays are like Python lists.  PHP arrays can grow in size
+        and the array elements can be  of more than one type. 
+        Consider the following simple example:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  $things = array('cat',5);
+  $things[] = 'dog';
+  $things[] = 'cow';
+  print_r($things);
+  echo $things[1] . "\n";
+  echo $things[3] . "\n";
+?></code></pre>
+      <p>
+        Line 2 creates an array with the first element a string with
+        the value "cat".  The second element is a number with the
+        value 5.  Lines 3 and 4 demonstrate how to append to the
+        end of the array.  You just use the array name followed by
+        empty brackets ([ ]) and assign the value you want appended
+        to the array.  Line 5 uses the <b>print_r()</b> function to
+        print the array.  The <b>print_r()</b> function is made
+        specifically for printing arrays.  Lines 6 and 7 show that
+        array access using an index works the same as accessing
+        arrays in Python, Java or C.  Here is the output of this
+        program run at the command line:
+      </p>
+      <pre><code class="language-markup">
+$ php -f array1.php
+Array
+(
+    [0] => cat
+    [1] => 5
+    [2] => dog
+    [3] => cow
+)
+5
+cow</code></pre>
+      <h4>Associative Arrays</h4>
+      <p>
+        You can also use associative arrays.  These are arrays that use
+        a string key instead of an integer index.  Like index-based arrays, 
+        you can simply add new elements.  Consider the following example:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  $favorites = array();
+  $favorites["animal"] = "cat";
+  $favorites["number"] = 7;
+  $favorites["food"] = "pizza";
+  print_r($favorites);
+  echo $favorites["food"] . "\n";
+?></code></pre>
+      <p>
+        Line 2 initializes an empty array.  Lines 3-5 add elements
+        to this associative array.  Line 6 uses the <b>print_r()</b>
+        function to print the entire array.  Line 7 demonstrates how
+        the associative array is accessed.  Here is the output when
+        this program is run from the command line:
+      </p>
+      <pre><code class="language-markup">
+$ php -f array2.php
+Array
+(
+    [animal] => cat
+    [number] => 7
+    [food] => pizza
+)
+pizza</code></pre>
+      <p>
+        Because the key for an associative array is a string, this 
+        makes it easier to figure out what the code is doing. It is 
+        more descriptive to use this:
+      </p>
+      <pre><code class="language-php">
+echo $favorites["food"];</code></pre>
+      <p>
+        than this:
+      </p>
+      <pre><code class="language-php">
+echo $favorites[2];</code></pre>
+      <p>
+        Therefore, you should favor using associative arrays over
+        index-based arrays.
+      </p>
+      <h2>Repetition statements</h2>
+      <h3>For loops</h3>
+      <p>
+        The most straightforward way to process an array in any
+        language is a <b>for</b> loop.  PHP is no exception.  Here
+        is an example of the most common way to use a for loop to
+        print out an array in PHP:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  $animals = array('cat','dog','horse','cow');
+  for ($i = 0; $i &lt; count($animals); $i++) {
+    echo $animals[$i] . "\n";
+  }
+?></code></pre>
+      <p>
+        On line 2 we create an array.  Lines 3-5 define a <b>for</b>
+        loop that will print out all the animals.  On line 3, the 
+        the for loop is setup similar to Java or C.  The first
+        statement is the initializing statement, and this sets
+        <b>$i</b> = 0.  The second statement is the terminating
+        condition.  When the second statement becomes false, the
+        for loop ends.  Note the <b>count()</b> function is used to
+        return the number of elements in the array.  Finally, the
+        third statement sets the increment for the loop variable.
+        As mentioned before, it is important to use <b>$i</b>, not
+        <b>i</b>, for the loop variable.  The following shows the
+        output that is produced when this program is run on the command
+        line:
+      </p>
+      <pre><code class="language-markup">
+$ php -f for_loop.php
+cat
+dog
+horse
+cow</code></pre>
+      <h3>While loops</h3>
+      <p>
+        While loops in PHP are similar to while loops in many other
+        programming languages.  Here is a simple example of a
+        while loop:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  $x = 7;
+  while ($x > 3) {
+     echo "x is $x\n";
+     $x--;
+  }
+?></code></pre>
+      <p>
+        As can be seen, the while loop continues as long as the test
+        condition is true.  Note on line 4 how <em>variable interpolation</em>
+        is used to print the value of <b>$x</b>.  The output that is 
+        produced when this program is run is:
+      </p>
+      <pre><code class="language-markup">
+$ php -f while1.php
+x is 7
+x is 6
+x is 5
+x is 4</code></pre>
+      <p>
+        What is somewhat unique about the PHP language is how boolean
+        expressions evaluate to true and false.  It turns out that 
+        any array element or record from a recordset that is not NULL
+        evaluates to TRUE, while a NULL element or record evaluates to
+        FALSE.  This makes a program like the following work:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php
+  $animals = array('cat','dog','horse','cow');
+  echo current($animals) . "\n";
+  while ($animal = next($animals)){
+    echo "$animal\n";
+  }
+?></code></pre>
+      <p>
+        The <b>current()</b> function on line 3 returns the current
+        array element without advancing the internal array pointer.
+        The <b>next()</b> function on line 4 advances the internal
+        array pointer and returns the element in that position or
+        FALSE if the pointer has gone beyond the end of the array.
+        So, when the internal array pointer goes past the end of
+        the array, the while loop will stop.  The following shows
+        the output when this program is run on the command line:
+      </p>
+      <pre><code class="language-markup">
+$ php -f while2.php
+cat
+dog
+horse
+cow</code></pre>
+      <h3>Additional PHP lessons</h3>
+      <p>
+        There are many PHP tutorials online.  Using Google and just
+        including PHP with the function you are searching on will
+        usually return links to the <a href="http://php.net/manual/en">
+        PHP Manual</a>.  Other good tutorials for learning more PHP
+        basics can be found <a href="http://www.w3schools.com/php/">
+        here</a>.
+      </p>
+    </div>
+    <!-- main ends -->
+    <div id="footer">
+      <a href="../index.html">Home</a>
+    </div>
+  </body>
+</html>

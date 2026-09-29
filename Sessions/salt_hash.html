@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="../prism.css" />
+    <script type="text/javascript" src="../prism.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <a href="../index.html">Home</a>
+    </div>
+    <!-- main begins -->
+    <div id="main">
+      <h1>Better passwords using salts and hashes</h1>
+      <p>
+        Using plain text for storing a password should never be done.
+        Unfortunately, storing passwords in plain text is more 
+        common than it should be.  Although this 
+        <a href="https://defuse.ca/password-policy-hall-of-shame.htm">
+        page</a> is deprecated, it gives you an idea of how many sites
+        use or used to use questionable password policies.
+      </p>
+      <h2>Salts and Hashes</h2>
+      <p>
+        A properly stored password should be salted and hashed.  A
+        <b>salt</b> is some text that is combined with a hash of
+        the password.  This combination is then hashed again, and
+        that final hash is what is stored.  The <b>salt</b> should
+        be random.  A <b>hash</b> is a special encoded form of a string.
+        The key to a <b>hash algorithm</b> is that it generates a
+        string of fixed length that is not reversible.  That is, you
+        cannot go in the reverse direction from the hash to obtain the
+        orginal string.
+      </p>
+      <h3>Salts should be random</h3>
+      <p>
+        Salts should be random.  That means that they should be some
+        hard to guess text, that is different for each password.  The
+        salt should be generated each time a password is stored.  A 
+        fixed salt is a bad idea, because once it is cracked, all the
+        passwords can be cracked more easily.  Tools such as
+        <a href="http://www.openwall.com/john/">John the Ripper</a> can
+        crack a set of passwords that use a fixed salt far more 
+        easily than if random salts are used.
+      </p>
+      <h3>Use appropriate hashes</h3>
+      <p>
+        In any popular database or web programming language, the
+        SHA-512 hashing algorithm is available.  This creates hash
+        values consisting of 64 words.  On Ubuntu Linux you can 
+        install the <b>whois</b> package, and this provides the
+        <b>mkpasswd</b> tool.  The <b>mkpasswd</b> tool can be used
+        to generate SHA-512 hashes on the command line:
+      </p>
+      <pre><code class="language-markup">
+$ mkpasswd -m sha-512 jane
+$6$OduOv5b3H$ORLrgU5t6QZJUo8Glcdk6UuGvHokfU4cms56WpzoWcYLr./in/tdxdOQDo9lFSdAgug6NXk6MsxlKWb1ySZdV/
+$ mkpasswd -m sha-512 deoxyribonucleic_acid
+$6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMmgqP15uzvjI3JRQmbO.</code></pre>
+      <p>
+        As you can see, the sha-512 hash would not be work backwards to the
+        original text.  Unlike encryption, there is no one-to-one correspondence
+        between the original text and the hashed text.
+      </p>
+      <h2>Using salts and hashes with plpgsql</h2>
+      <p>
+        Take a look at the <a href="../plpgsql/plpgsql.html">
+        pglpgsql page</a> to see the basics on using plpgsql.
+      </p>
+      <h3>Install postgresql-contrib package</h3>
+      <p>
+        To do hashing with PostgreSQL, you need to make sure that
+        the postgresql-contrib package has been installed:
+      </p>
+      <pre><code class="language-markup">
+sudo apt-get install postgresql-contrib</code></pre>
+      <h3>Create pgcrypto extension for database</h3>
+      <p>
+        In addition, you need to connect to the database
+        as the PostgreSQL superuser and create the 
+        pgcrypto extension:
+      </p>
+      <pre class="line-numbers"><code class="language-markup">
+$ psql -U cent285man -W cent285db
+Password for user cent285man: 
+psql (9.3.9)
+Type "help" for help.
+
+cent285db=# create database mydb owner bob;
+CREATE DATABASE
+cent285db=# \c mydb
+Password for user cent285man: 
+You are now connected to database "mydb" as user "cent285man".
+mydb=# create extension pgcrypto;
+CREATE EXTENSION
+mydb=# \q</code></pre>
+      <p>
+        Note on line 8, the <b>\c</b> command is used to change
+        databases.  The change is noted on line 10 and the prompt
+        on line 11 shows the different database name.  Line 11
+        is the command to create the <b>pgcrypto</b> extension.
+        Note on line 13, that we quit out of psql.  This is to
+        make sure that we don't run some SQL script as the 
+        superuser, instead of "bob".
+      </p>
+      <h3>Using the pgcrypto extension</h3>
+      <p>
+        Login to "mydb" as "bob".  Then, look at the
+        <b>encode()</b> and <b>digest()</b> functions.
+      </p>
+      <pre><code class="language-markup">
+mydb=> select digest('passwrd','sha512'); 
+digest                                                               
+------------------------------------------------------------------------------------------------------------------------------------
+ \x34c91b1685517e5b9325f67eca65659f854c6391f18c874057851412e7ca8cdb4c034bab4f402aaf1e7d17a8d4706225480585767166cabd703a580700f696fb
+(1 row)
+
+mydb=> select encode(digest('passwrd','sha512'),'hex');
+encode                                                              
+----------------------------------------------------------------------------------------------------------------------------------
+ 34c91b1685517e5b9325f67eca65659f854c6391f18c874057851412e7ca8cdb4c034bab4f402aaf1e7d17a8d4706225480585767166cabd703a580700f696fb
+(1 row)</code></pre>
+      <p>
+        We will use the <b>encode()</b> and <b>digest()</b> functions
+        to make a plpgsql function that performs a sha-512 hash:
+      </p>
+      <pre class="line-numbers"><code class="language-sql">
+-- do_hash() function, uses SHA-512 hash 
+create or replace function do_hash(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return encode(digest(_mystring,'sha512'),'hex'); 
+    end; 
+  $func$ 
+  language 'plpgsql';</code></pre>
+      <p>
+        Line 1 is just a comment.  Note the syntax is the 
+        same as for SQL scripts.  In fact, plpgsql functions
+        are defined in SQL scripts.
+      </p>
+      <p>
+        Line 2 is the function declaration header.  Note in 
+        the parameter list that the name of the parameter
+        precedes the type of the parameter.  So the variable
+        <b>_mystring</b> is of type "text".  It is common
+        practice to start variable names with an underscore.
+        That will avoid difficult to fix bugs that occur if
+        you use a variable name that is the same as a 
+        database field name.
+      </p>
+      <p>
+        Line 3 specifies that the return type is "text".
+        Lines 4 and 8 are the double-dollar delimiters that
+        allow the normal use of quotes within.  This allows
+        using strings (that are single quoted) in the same
+        way as normal SQL commands.
+      </p>
+      <p>
+        Line 5 marks the beginning of the function definition.
+        Line 7 marks the end of the function definition. If
+        the function uses local variables, a <b>declare</b>
+        section would be used inside the function definition.
+      </p>
+      <p>
+        Line 6 is the one instruction in the function definition.
+        Note that instructions end with a semicolon (;).  In 
+        this function, the <b>digest()</b> function performs
+        a sha-512 hash, and the <b>encode()</b> function 
+        converts that hash into a hexadecimal string.  The
+        hexadecimal string is what is returned by the function.
+      </p>
+      <h3>Using a salt</h3>
+      <p>
+        A <b>salt</b> is a string that is combined with the
+        password string to make the password harder to guess.
+        The <b>salt</b> should be randomly generated so 
+        that a different salt is used for each password.
+        Here is a plpgsql function that builds on the
+        <b>do_hash()</b> function to make use of a 
+        salt.
+      </p>
+      <pre class="line-numbers" data-line="11-19"><code class="language-sql">
+-- do_hash() function, uses SHA-512 hash 
+create or replace function do_hash(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return encode(digest(_mystring,'sha512'),'hex'); 
+    end; 
+  $func$ 
+  language 'plpgsql'; 
+  
+-- make_salt() function 
+create or replace function make_salt(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return do_hash(now() || _mystring); 
+    end; 
+  $func$ 
+  language 'plpgsql';</code></pre>
+      <p>
+        The new lines, shown with a different background, are lines
+        11-19.  On line 16, the <b>now()</b> function returns a
+        string that corresponds to the current day and time. The
+        <b>||</b> symbol is the concatenation operator in SQL.
+        So, the <b>salt</b> is formed by taking the current date/time
+        string, concatenating it with the passed string and then
+        performing the sha-512 hash on the resulting string.
+      </p>
+      <h3>Creating a salted and hashed password</h3>
+      <p>
+        Next, we create a function for generating a salted
+        and hashed password.
+      </p> 
+      <pre class="line-numbers" data-line="21-29"><code class="language-sql">
+-- do_hash() function, uses SHA-512 hash 
+create or replace function do_hash(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return encode(digest(_mystring,'sha512'),'hex'); 
+    end; 
+  $func$ 
+  language 'plpgsql'; 
+  
+-- make_salt() function 
+create or replace function make_salt(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return do_hash(now() || _mystring); 
+    end; 
+  $func$ 
+  language 'plpgsql'; 
+  
+-- make_enc_pass() function 
+create or replace function make_enc_pass(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return do_hash(_mystring || make_salt(_mystring)); 
+    end; 
+  $func$ 
+  language 'plpgsql';</code></pre>
+      <p>
+        The new lines, shown with a different background,
+        are lines 21-29.  The passed string is concatenated
+        with the salt of the passed string.  The resulting
+        string is hashed again.  This scheme makes it
+        relatively difficult to guess the password, since
+        the salt is random and unknown, and the amount
+        and type of concatenations that are performed
+        are also unknown.
+      </p>
+      <h3>Storing the password and salt</h3>
+      <p>
+        The following function could be used to store
+        the password and salt into a table named 
+        <b>users</b>.  It is also assumed that this
+        table has the following fields: <b>username</b>,
+        <b>salt</b> and <b>enc_pass</b>.
+      </p>
+      <pre class="line-numbers"><code class="language-sql">
+  -- add_user() function 
+create or replace function add_user(_user text, _pass text) 
+  returns boolean as 
+  $func$ 
+    begin 
+      insert into users (username,salt,enc_pass) values 
+        (_user, make_salt(_pass), make_enc_pass(_pass)); 
+      return 't'; 
+    end; 
+  $func$ 
+  language 'plpgsql';</code></pre>
+      <p>
+        We need to store the salt along with the salted
+        and hashed password, because the salt is 
+        required to check if the submitted username
+        and password match.  Let's create a plpgsql
+        function that can be used to validate
+        a username and password.
+      </p>
+      <h3>A function to validate the username/password</h3>
+      <p>
+        The <b>get_id()</b> plpgsql function will return
+        the user's id if the username and password is
+        valid.  Otherwise, this function will return a
+        -1.
+      </p>
+      <pre class="line-numbers"><code class="language-sql">
+   -- get_id() function 
+  create or replace function get_id(_user text, _pass text) 
+    returns integer as 
+    $func$ 
+      declare 
+        rec record; 
+      begin 
+        select into rec * from users where username=_user; 
+        if found then 
+          if do_hash(_pass || rec.salt) = rec.enc_pass then 
+            return rec.id; 
+          else 
+            return -1; 
+          end if; 
+        else 
+          return -1; 
+        end if; 
+      end; 
+    $func$ 
+    language 'plpgsql';</code></pre>
+      <p>
+        Note that this function returns an integer as
+        specified on line 3.
+        Line 5 starts the <b>declare</b> block where
+        local variables are declared.  On line 6, the
+        local variable, <b>rec</b> is defined to be
+        of type "record".  The "record" type is a
+        record returned from a database select query.
+      </p>
+      <p>
+        Lines 8-17 form the definition of the <b>get_id()</b>
+        function.  On line 8 we attempt to select all fields
+        into <b>rec</b> from the users table where the 
+        username field matches the submitted username.
+        Lines 9-17 define the selection statements that
+        handle the possible cases from this attempt.
+      </p>
+      <p>
+        The case going from line 9-14 is matched if
+        the username is found in the users table.  If this
+        is true, the returned record is stored in
+        the <b>rec</b> variable.  Line 10 checks to see
+        if the hash of the submitted password concatenated with the
+        stored salt matches the stored password.  If this is true
+        the user's id is returned on line 11.
+      </p>
+      <p>
+        On lines 12-13, this is matched if the username is
+        valid but the password is not.  In this case a -1
+        is returned on line 13.
+      </p>
+      <p>
+        Lines 15-16 define the case that deals with the
+        username not being in the users table.  In that
+        case, a -1 is returned on line 16.
+      </p>
+      <p>
+        Note that the <b>get_id()</b> function returns the
+        same value (-1) for a bad username and a correct 
+        username with bad password.  You may choose to 
+        return different values if you want to know
+        the difference.
+      </p>
+      <h3>Putting it all together</h3>
+      <p>
+        You can put all of these plpgsql functions into
+        one SQL script.  After including such a script,
+        you could then test these scripts in psql.
+      </p>
+      <p>
+        Here is a series of steps that could be used to 
+        test these plpgsql scripts out. First, create
+        an "init.sql" that creates an appropriate users table:
+      </p>
+      <pre class="line-numbers"><code class="language-sql">
+-- init.sql
+drop table if exists users cascade;
+create table users (
+  id serial,
+  first_name varchar(30),
+  last_name varchar(40),
+  username varchar(50) unique,
+  password text,
+  salt text,
+  enc_pass text,
+  primary key (id)
+);</code></pre>
+      <p>
+        Then, create a script, "hash_pass.sql" that contains
+        the plpgsql functions just discussed:
+      </p>
+      <pre class="line-numbers"><code class="language-sql">
+--hash_pass.sql
+
+-- do_hash() function, uses SHA-512 hash 
+create or replace function do_hash(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return encode(digest(_mystring,'sha512'),'hex'); 
+    end; 
+  $func$ 
+  language 'plpgsql'; 
+  
+-- make_salt() function 
+create or replace function make_salt(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return do_hash(now() || _mystring); 
+    end; 
+  $func$ 
+  language 'plpgsql'; 
+  
+-- make_enc_pass() function 
+create or replace function make_enc_pass(_mystring text) 
+  returns text as 
+  $func$ 
+    begin 
+      return do_hash(_mystring || make_salt(_mystring)); 
+    end; 
+  $func$ 
+  language 'plpgsql';
+  
+  -- add_user() function 
+create or replace function add_user(_user text, _pass text) 
+  returns boolean as 
+  $func$ 
+    begin 
+      insert into users (username,salt,enc_pass) values 
+        (_user, make_salt(_pass), make_enc_pass(_pass)); 
+      return 't'; 
+    end; 
+  $func$ 
+  language 'plpgsql';
+  
+   -- get_id() function 
+  create or replace function get_id(_user text, _pass text) 
+    returns integer as 
+    $func$ 
+      declare 
+        rec record; 
+      begin 
+        select into rec * from users where username=_user; 
+        if found then 
+          if do_hash(_pass || rec.salt) = rec.enc_pass then 
+            return rec.id; 
+          else 
+            return -1; 
+          end if; 
+        else 
+          return -1; 
+        end if; 
+      end; 
+    $func$ 
+    language 'plpgsql';</code></pre>
+      <p>
+        Then, using a database that has the <b>pgcrypto</b>
+        extension created, include those files.  Make sure
+        that you connect to the database as a regular
+        user not the PostgreSQL superuser.  Here is a 
+        sample workflow:
+      </p>
+      <pre><code class="language-markup">
+$ psql -U bob -W mydb
+Password for user bob: 
+psql (9.3.9)
+Type "help" for help.
+
+mydb=> \i init.sql 
+psql:init.sql:2: NOTICE:  table "users" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+mydb=> \i hash_pass.sql 
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+mydb=> select add_user('janedoe@gmail.com','janey');
+ add_user 
+----------
+ t
+(1 row)
+
+mydb=> select add_user('johndoe@gmail.com','john');
+ add_user 
+----------
+ t
+(1 row)
+mydb=> select * from users;
+ id | first_name | last_name |     username      | password |                                                               salt                                                               |                                                             enc_pass                                                             
+----+------------+-----------+-------------------+----------+----------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------
+  1 |            |           | janedoe@gmail.com |          | 91a444828cf842f3a270c1f1ec3dc47511a9ee78fcf6ee101615d2727e509ec4dbceb91388daf3f27e287c45e32a2a84c5ac68791f4fac54ff9124b380e9bfcd | 5616d615bbb4ad308202d5a21098ce432cc18df92c5909dd37dc425d7bdb988d9b253b62133dedee9e5cdf3a0f22396906602620d7453fe2f20f484fc53b374a
+  2 |            |           | johndoe@gmail.com |          | 21006c77bfa80e003a66ab740b949d7934b58254fe7fae9993a3932d7b469646ec04bd2034641518ef44d08fbd960c2ed65e0172cc692bf48622bbb722215a32 | 5b7aa26ff936800dcfff1cfdf6b879a7a9d7a3a8a8fac4882a1c01b9698c392ffde019ec9c50e55da9308464f5043f7985329fc5efd857abd3c3e48be59f58b5
+(2 rows)</code></pre>
+      <p>
+        As can be seen, the method for using a plpgsql function is to
+        simply "select" the function.  The following shows some
+        tests of the <b>get_id()</b> function.
+      </p>
+      <pre><code class="language-markup">
+mydb=> select get_id('janedoe@gmail.com','janey');
+ get_id 
+--------
+      1
+(1 row)
+
+mydb=> select get_id('janedoe@gmail.com','jane');
+ get_id 
+--------
+     -1
+(1 row)
+
+mydb=> select get_id('johndoe@gmail.com','john');
+ get_id 
+--------
+      2
+(1 row)</code></pre>
+      <p>
+        As can be seen, when the correct username and password
+        are submitted, the user's id is returned.  Otherwise,
+        (Jane Doe has the wrong password for the second case), 
+        a -1 is returned.
+      </p>
+      <h2>Using PHP instead of plpgsql</h2>
+      <p>
+        Suppose that you are not using PostgreSQL.  This means
+        you won't be able to use plpgsql functions.  You can
+        make PHP functions that can perform the hashing.  These
+        are shown below:
+      </p>
+      <pre class="line-numbers"><code class="language-php">
+&lt;?php 
+  function do_hash($text) { 
+    return hash('sha512',$text); 
+  } 
+  function make_salt($text) { 
+    return do_hash(date('Y-m-d H:i:s') . $text); 
+  } 
+  function make_enc_pass($text) { 
+    return do_hash($text . make_salt($text)); 
+  } 
+?></code></pre>
+      <p>
+        This file would simply have to be included on any 
+        PHP script that needs this functionality.  It is 
+        straightforward to create an add_user() and a
+        get_id() function in PHP.  This is left as an
+        exercise for the reader.
+      </p>
+      <p>
+        
+      </p>
+    </div>
+    <!-- main ends -->
+    <div id="footer">
+      <a href="../index.html">Home</a>
+    </div>
+  </body>
+</html>
