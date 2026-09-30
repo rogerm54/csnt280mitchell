@@ -79,7 +79,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         <b>do_hash()</b> function to make use of a 
         salt.
       </p>
-      <pre class="line-numbers" data-line="11-19"><code class="language-sql">
+      <pre class="line-numbers" data-line="11-19"><code class="language-php">
    function do_hash($text) {
       return hash('sha512',$text);
    }
@@ -100,7 +100,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         Next, we create a function for generating a salted
         and hashed password.
       </p> 
-      <pre class="line-numbers" data-line="21-29"><code class="language-sql">
+      <pre class="line-numbers" data-line="21-29"><code class="language-php">
    function do_hash($text) {
       return hash('sha512',$text);
    }
@@ -128,7 +128,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         table has the following fields: <b>username</b>,
         <b>salt</b> and <b>enc_pass</b>.
       </p>
-      <pre class="line-numbers"><code class="language-sql">
+      <pre class="line-numbers"><code class="language-php">
    function add_user($fn, $ln, $e_mail, $pass) {
 	  $pdo = connect();
 	  if (!$pdo) {
@@ -163,7 +163,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         valid.  Otherwise, this function will return a
         -1.
       </p>
-      <pre class="line-numbers"><code class="language-sql">
+      <pre class="line-numbers"><code class="language-php">
    function check_id($user, $pass) {
       $pdo = connect();
       if (!$pdo) {
@@ -189,47 +189,12 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
    }
     </code></pre>
       <p>
-        Note that this function returns an integer as
-        specified on line 3.
-        Line 5 starts the <b>declare</b> block where
-        local variables are declared.  On line 6, the
-        local variable, <b>rec</b> is defined to be
-        of type "record".  The "record" type is a
-        record returned from a database select query.
+        This function returns an integer. If the return value is positive,
+		   the user is in the database and the passwords match.
       </p>
-      <p>
-        Lines 8-17 form the definition of the <b>check_id()</b>
-        function.  On line 8 we attempt to select all fields
-        into <b>rec</b> from the users table where the 
-        username field matches the submitted username.
-        Lines 9-17 define the selection statements that
-        handle the possible cases from this attempt.
-      </p>
-      <p>
-        The case going from line 9-14 is matched if
-        the username is found in the users table.  If this
-        is true, the returned record is stored in
-        the <b>rec</b> variable.  Line 10 checks to see
-        if the hash of the submitted password concatenated with the
-        stored salt matches the stored password.  If this is true
-        the user's id is returned on line 11.
-      </p>
-      <p>
-        On lines 12-13, this is matched if the username is
-        valid but the password is not.  In this case a -1
-        is returned on line 13.
-      </p>
-      <p>
-        Lines 15-16 define the case that deals with the
-        username not being in the users table.  In that
-        case, a -1 is returned on line 16.
-      </p>
-      <p>
-        Note that the <b>check_id()</b> function returns the
-        same value (-1) for a bad username and a correct 
-        username with bad password.  You may choose to 
-        return different values if you want to know
-        the difference.
+        Note that the <b>check_id()</b> function returns a
+        negative value for a bad username and a correct 
+        username with bad password.  
       </p>
       <h3>Putting it all together</h3>
       <p>
@@ -242,7 +207,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         test these php scripts out. First, create
         an "init.sql" that creates an appropriate users table:
       </p>
-      <pre class="line-numbers"><code class="language-sql">
+      <pre class="line-numbers"><code class="language-php">
 -- init.sql
 drop table if exists users cascade;
 create table users (
@@ -259,7 +224,7 @@ create table users (
         Then, create a script, "add_users.php" that calls
         the php functions just discussed:
       </p>
-      <pre class="line-numbers"><code class="language-sql">
+      <pre class="line-numbers"><code class="language-php">
 <?php
    require_once('helpers.php');
    add_user('Jane','Doe','janedoe@gmail.com','janey');
