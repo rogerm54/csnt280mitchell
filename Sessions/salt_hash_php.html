@@ -163,7 +163,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         valid.  Otherwise, this function will return a
         -1.
       </p>
-      <pre class="line-numbers"><code class="language-php">
+      <pre class="line-numbers"><code class="language-markup">
    function check_id($user, $pass) {
       $pdo = connect();
       if (!$pdo) {
@@ -207,7 +207,7 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         test these php scripts out. First, create
         an "init.sql" that creates an appropriate users table:
       </p>
-      <pre class="line-numbers"><code class="language-php">
+      <pre class="line-numbers"><code class="language-sql">
 -- init.sql
 drop table if exists users cascade;
 create table users (
