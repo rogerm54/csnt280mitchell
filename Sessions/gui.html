@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="../prism.css" />
+    <script type="text/javascript" src="../prism.js"></script>
+    <script src="../display_tools.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <a href="../index.html">Home</a>
+    </div>
+    <!-- main begins -->
+    <div id="main">
+      <h2>GUI Programming using PySide</h2>
+      <p>
+        One of the best ways to do GUI
+        (Graphical User Interface) programming in Python is to
+        use the PySide framework. This is the completely
+        free port of the PyQt framework. PySide has
+        a large number of widgets that make it
+        straightforward to create a GUI application. The following
+        is an introduction to creating a simple GUI
+        application that makes use of some of the
+        common functions in PySide.
+      </p>
+      <h4>Naming conventions in PySide</h4>
+      <p>
+        The naming convention for classes, functions and properties
+        in PySide is similar to the naming convention
+        for Java. That is, classes begin with a
+        capital letter while functions and variables start with
+        a lower case letter. The names use camel
+        case, so every new word that makes up
+        a name is capitalized. Understanding the naming convention
+        is helpful in understanding online documentation.
+      </p>
+      <h3>PySide Installation</h3>
+      <p>
+        To install PySide on Ubuntu 16.04, use the
+        following command:
+      </p>
+        <pre><code class="language-markup">
+sudo apt-get install python3-pyside</code></pre>
+      <h3>PySide documentation</h3>
+      <p>
+        The closest version of PySide documentation to the
+        version that will be installed, is the <a
+        href="https://pyside.github.io/docs/pyside/">PySide 1.2.1 documentation</a>. The documentation for version 1.0.7
+        is close enough to also be useful.
+      </p>
+      <h4>Tutorials</h4>
+      <p>
+        This series of tutorials, <a href="http://zetcode.com/gui/pysidetutorial/">Pyside Tutorial</a>, are
+        old, but are good because the examples are
+        short and useful. You can also try the
+        tutorials at this <a href="https://wiki.qt.io/PySide_Tutorials">site</a>.
+      </p>
+      <h3>A simple GUI program</h3>
+      <p>
+        Here is the code for a very simple
+        GUI program. It just consists of a titled
+        window that has a close button, minimize button
+        and resize/maximize button.
+      </p>
+      <pre class="line-numbers" data-line=""><code class="language-python">
+from PySide import QtGui, QtCore
+import sys
+class MyGui(QtGui.QMainWindow):
+    def __init__(self):
+        QtGui.QMainWindow.__init__(self)
+        self.setGeometry(50,50,700,400)
+        self.setWindowTitle("My GUI Program")
+        self.show()
+
+app = QtGui.QApplication(sys.argv)
+mygui = MyGui()
+sys.exit(app.exec_())</code></pre>
+      <p>
+        Line 1 imports the <b>QtGui</b> and <b>QtCore</b> modules
+        from the <b>PySide</b> module. The QtGui and QtCore
+        modules are used for just about any PySide
+        program, so consider this a standard import statement.
+        Line 2 imports the <b>sys</b> module that is
+        needed to start up the application.
+      </p>
+      <p>
+        Lines 3-8 define the <b>MyGui</b> class. Line 3
+        makes it so that MyGui inherits from the
+        QtGui.QMainWindow class. This will give MyGui all the
+        important properties for behaving as the main window
+        of a GUI application.
+      </p>
+      <p>
+        Lines 4-8 define the constructor for the MyGui
+        class. Note that in Python, the constructor for
+        a class is always named <b>__init__</b>. Line 5
+        calls the constructor of the parent class, QMainWindow.
+        Line 6 sets the bounds for the application.
+        In this case, the upper left corner will
+        start at (50,50) and the window will be
+        700 pixels wide by 400 pixels high. Line
+        7 sets the title to "My GUI Program",
+        and line 8 causes the window to be
+        displayed.
+      </p>
+      <p>
+        Line 10 creates a QApplication object. Line 11
+        creates the main window object by calling the
+        constructor for the MyGui class. Line 12 launches
+        the QApplication object. Lines 10-12 are that standard
+        way that any PySide GUI application is launched.
+      </p>
+      <p>
+        This file is saved as "mygui.py". To launch
+        the program, run the following command from a
+        terminal that is in the directory containing "mygui.py":
+      </p>
+        <pre><code class="language-markup">
+python3 mygui.py</code></pre>
+      <p>
+        This is a screen shot showing what the
+        application looks like:
+      </p>
+      <p>
+        <img src="gui1.png" />
+      </p>
+      <p>
+        As you can see, the title bar shows
+        "My GUI Program" and the close, minimize and
+        resize/maximize buttons are on the upper left of
+        the title bar.
+      </p>
+      <h3>Adding a menu</h3>
+      <p>
+        Next, let's add a menu. The menu will
+        start off just being a <b>File</b> menu with
+        a <b>Quit</b> menu item that causes the application
+        to end. Here is the modified version of
+        "mygui.py".
+      </p>
+      <pre class="line-numbers" data-line="6,11-16"><code class="language-python">
+from PySide import QtGui, QtCore
+import sys
+class MyGui(QtGui.QMainWindow):
+    def __init__(self):
+        QtGui.QMainWindow.__init__(self)
+        self.initMenu()
+        self.setGeometry(50,50,700,400)
+        self.setWindowTitle("My GUI Program")
+        self.show()
+        
+    def initMenu(self):
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu("File")
+        quit = QtGui.QAction("Quit",self)
+        quit.triggered.connect(self.close)
+        fileMenu.addAction(quit)
+
+app = QtGui.QApplication(sys.argv)
+mygui = MyGui()
+sys.exit(app.exec_())</code></pre>
+      <p>
+        The new lines, shown with a different background,
+        are line 6 and lines 11-16. Line 6
+        just calls the <b>initMenu()</b> function that is defined
+        on lines 11-16. The <b>initMenu()</b> function defined on
+        lines 16 creates the menu system for this
+        application. Line 12 creates the menu bar. Line
+        13 adds the <b>File</b> menu using the <b>addMenu()</b>
+        function and stores a reference to this menu
+        called <b>fileMenu</b>. This reference, <b>fileMenu</b>, is used on
+        line 16 to add the Quit menu item.
+        Line 14 creates a <b>QAction</b> object called quit.
+        Menu items are QAction objects. Note that when
+        a QAction object (menu item) is created, the
+        second argument is <b>self</b>. That refers to the
+        QMainWindow object (the main window). This ties the
+        menu item to the main window allowing the
+        main window to respond to the user selecting
+        that menu item. Line 15 connects the <b>close()</b>
+        function to the event that the user selects
+        the Quit menu item. The <b>close()</b> function is
+        one of the functions that is inherited from
+        the QMainWindow class. This is why you don't
+        define the <b>close()</b> function, because it is inherited
+        from QMainWindow.
+      </p>
+      <p>
+        If you run the program now, you will
+        be able to select Quit on the File
+        menu and end the application.
+      </p>
+      <h3>Adding a text area</h3>
+      <p>
+        Let's add a text area to the application.
+        Here is the new version of the program:
+      </p>
+      <pre class="line-numbers" data-line="7-8"><code class="language-python">
+from PySide import QtGui, QtCore
+import sys
+class MyGui(QtGui.QMainWindow):
+    def __init__(self):
+        QtGui.QMainWindow.__init__(self)
+        self.initMenu()
+        self.text = QtGui.QTextEdit()
+        self.setCentralWidget(self.text)
+        self.setGeometry(50,50,700,400)
+        self.setWindowTitle("My GUI Program")
+        self.show()
+        
+    def initMenu(self):
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu("File")
+        quit = QtGui.QAction("Quit",self)
+        quit.triggered.connect(self.close)
+        fileMenu.addAction(quit)
+
+app = QtGui.QApplication(sys.argv)
+mygui = MyGui()
+sys.exit(app.exec_())</code></pre>
+      <p>
+        The new lines, shown with a different background,
+        are lines 7 and 8. Line 7 creates
+        a <b>QTextEdit</b> object that will serve as a
+        text area. Line 8 sets this text area
+        to be the central widget. Being the central
+        widget will mean that this text area will
+        take up the main part of the applications
+        main window.
+      </p>
+      <p>
+        The screen shot below shows some text that
+        was typed into the text area:
+      </p>
+      <p>
+        <img src="gui2.png" />
+      </p>
+      <p>
+        
+      </p>
+      <h3>Adding an Open menu item</h3>
+      <p>
+        Let's add another menu item to the File
+        menu. We will add a menu item (QAction)
+        labeled Open that will cause a file open
+        dialog to be displayed. Here is the new
+        version of the program:
+      </p>
+      <pre class="line-numbers" data-line="16-18,23-30"><code class="language-python">
+from PySide import QtGui, QtCore
+import sys
+class MyGui(QtGui.QMainWindow):
+    def __init__(self):
+        QtGui.QMainWindow.__init__(self)
+        self.initMenu()
+        self.text = QtGui.QTextEdit()
+        self.setCentralWidget(self.text)
+        self.setGeometry(50,50,700,400)
+        self.setWindowTitle("My GUI Program")
+        self.show()
+        
+    def initMenu(self):
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu("File")
+        open = QtGui.QAction("Open",self)
+        open.triggered.connect(self.openFile)
+        fileMenu.addAction(open)
+        quit = QtGui.QAction("Quit",self)
+        quit.triggered.connect(self.close)
+        fileMenu.addAction(quit)
+        
+    def openFile(self):
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self,
+            "Open File",".")
+        if (filename != ""):
+            infile = open(filename,"r")
+            contents = infile.read()
+            infile.close()
+            self.text.setText(contents)
+
+app = QtGui.QApplication(sys.argv)
+mygui = MyGui()
+sys.exit(app.exec_())</code></pre>
+      <p>
+        The new lines, shown with a different background,
+        are lines 16-18 and lines 23-30. Lines 16-18
+        add the new <b>Open</b> menu item. Line 16
+        creates the QAction object that serves as the
+        new menu item. Line 17 connects the event
+        associated with selecting that menu item with the
+        <b>openFile()</b> function defined on lines 23-30. Line 18
+        adds the menu item to the <b>File</b> menu.
+      </p>
+      <p>
+        Unlike the <b>close()</b> function referred to on line
+        20, the <b>openFile()</b> function is a function that
+        we need to define ourselves. Lines 24-25 cause
+        a file open dialog box to be displayed.
+        The second argument, "Open File", will be shown
+        in the title bar of that dialog box.
+        The third argument, ".", will cause that dialog
+        box to start looking for files in the
+        current directory. Lines 26-30 define an if statement
+        that will be executed if the user selects
+        a filename. Line 27 will open that file
+        for reading, storing the file handle as <b>infile</b>.
+        Line 28 will use the <b>read()</b> function to
+        read the entire contents of the file and
+        store this as <b>contents</b>. Line 29 closes the
+        input file handle. Line 30 sets the contents
+        of the text area to be the contents
+        of the input file. If you try this
+        out, make sure you select a text file.
+        The following screen shot shows the application after
+        opening the file "mygui.py", the source code for
+        the program:
+      </p>
+      <p>
+        <img src="gui3.png" />
+      </p>
+      <p>
+        Using a Table
+      </p>
+      <p>
+        See the following <a href="qtablewidget.html">example</a> to see this
+        GUI program modified to use a simple table,
+        instead of a text area.
+      </p>
+    </div>
+    <!-- main ends -->
+    <div id="footer">
+      <a href="../index.html">Home</a>
+    </div>
+  </body>
+</html>
