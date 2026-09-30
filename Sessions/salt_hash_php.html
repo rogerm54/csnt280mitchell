@@ -64,13 +64,6 @@ $6$QHk16PVr$BGp9VNCaXWhC7VaHkYz/Xx7juMBZ1rAUfRrCCn31FNL0lCbvSoC4OwAWIRSbIzfcPSMm
         between the original text and the hashed text.
       </p>
       <h2>Using salts and hashes with php</h2>
-        databases.  The change is noted on line 10 and the prompt
-        on line 11 shows the different database name.  Line 11
-        is the command to create the <b>pgcrypto</b> extension.
-        Note on line 13, that we quit out of psql.  This is to
-        make sure that we don't run some SQL script as the 
-        superuser, instead of "bob".
-      </p>
       <pre class="line-numbers"><code class="language-sql">
    function do_hash($text) {
       return hash('sha512',$text);
