@@ -15,29 +15,27 @@
       <ol>
          <li>
             Start on Lab 6<br />
-            <a href="https://laulima.hawaii.edu/access/content/group/HON.25406.202030/labs/lab6/lab6.html"
-               target="_blank">lab6.html</a><br />
             <ul type="disc">
                <li>
-                  From within the postgresql container, create the 
+                  Create the 
                   <b>lab6_db</b> database with 'bob' as owner.
                </li>
                <li>
-                  Make folder <b>lab6</b> inside &lt;main_docker>/docs  
+                  Make folder <b>lab6</b> inside ~/Desktop/docs  
                   and copy <b>results1.csv</b> and <b>results2.csv</b> 
                   into that folder.
                </li>
                <li>
                   Create <b>insert_funcs.sql</b> inside the
-                  &lt;main_docker>/docs/lab6 folder.
+                  ~/Desktop/docs/lab6 folder.
                </li>
                <li>
                   Create <b>add_initial_data.sql</b> inside the
-                  &lt;main_docker>/docs/lab6 folder.
+                  ~/Desktop/docs/lab6 folder.
                </li>
                <li>
-                  Write Python program to read <b>results1.csv</b> 
-                  and <b>results2.csv</b> to add to "add_initial_data.sql"
+                  Write a Python program to read <b>results1.csv</b> 
+                  and <b>results2.csv</b> to add "insert into" commands to "add_initial_data.sql"
                   file.
                </li>
                <li>
@@ -68,26 +66,10 @@ create view question_answers_view as
                   Create file <b>query_funcs.sql</b> that will have a 
                   function called <b>get_results()</b> that is patterned after
                   the get_results() function from this 
-                  <a href="http://www2.hawaii.edu/~takebaya/cent280/sql_functions/plpgsql.html"
+                  <a href="https://rogerm54.github.io/csnt280mitchell/module4/objective5.html"
                      target="_blank">link</a>
                </li>
             </ul>
-         </li>
-         <li>
-            Check /var/lib/postgresql/data/pg_hba.conf inside the <b>postgresql</b> 
-            container.  Currently, you can connect to a database without entering the 
-            correct password.  Make the following change:
-<pre>
-#local all   all   trust
-local    all   all   md5
-</pre>
-            <br />
-            Need to stop docker machine and restart for change to take effect.
-            Exit from docker container
-<pre>
-docker-compose stop
-docker-compose up -d
-</pre>
          </li>
       </ol>
    </body>
