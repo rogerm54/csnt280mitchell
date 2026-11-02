@@ -320,7 +320,7 @@ db.students.save({_id: 3, first_name: 'Bill', last_name: 'Gates'});</code></pre>
     </b>
     collection. Inside the
     <b>
-     ~/Desktop/node_area/docker_mongo/docs/registrations
+     ~/Desktop/node_area/docs/registrations
     </b>
     directory, create the following file, "sections.load":
    </p>
@@ -378,8 +378,8 @@ db.sections.insert({
     database in MongoDB:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
-$ cd ~/Desktop/node_area/docker_mongo/docs/registrations
-$ docker exec -it mongo_cont bash
+$ cd ~/Desktop/node_area/docs/registrations
+$ mongosh
 &gt; load('init.js')
 &gt; load('sections.load')
 &gt; use registrations
