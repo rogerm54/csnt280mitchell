@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com/css?family=Anonymous%20Pro" rel="stylesheet" type="text/css"/>
+  <style>
+   body {
+        font-family: "Lato", sans-serif;
+        font-size: 120%;
+      }
+  </style>
+  <link href="../nav_styles.css" rel="stylesheet" type="text/css"/>
+  <link href="../prism.css" rel="stylesheet" type="text/css"/>
+  <script src="../prism.js" type="text/javascript">
+  </script>
+  <script src="../display_tools.js">
+  </script>
+ </head>
+ <body>
+  <div id="header">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+  <div id="main">
+   <h2>
+    First look at MongoDB
+   </h2>
+   <p>
+    Let's start by running the MongoDB shell,
+    <b>
+     mongosh
+    </b>
+    and
+        create a database called "bobdb" and give this
+        database some records:
+   </p>
+   <p>
+    messages show up here
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+root@2b29a1a6c824:~Desktop/node_area/docs> mongosh
+MongoDB shell version v4.2.0
+connecting to: mongodb://127.0.0.1:27017/?compressors=disabled&amp;gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("d28e2629-75f5-4d57-87ac-9f91511ad215") }
+MongoDB server version: 4.2.0
+Welcome to the MongoDB shell.
+--- snip ---
+--- end snip ---
+&gt; show dbs
+admin   0.000GB
+config 0.000GB
+local   0.000GB
+&gt; use bobdb
+switched to db bobdb
+&gt; db.students.save({first_name: "Jane", last_name: "Doe"});
+WriteResult({ "nInserted" : 1 })
+&gt; db.students.save({first_name: "John", last_name: "Doe"});
+WriteResult({ "nInserted" : 1 })
+&gt; db.students.save({first_name: "Bill", last_name: "Gates"});
+WriteResult({ "nInserted" : 1 })</code></pre>
+   <p>
+    After starting up mongo by typing "mongo" at
+        the prompt, the MongoDB server starts up. You
+        will see the MongoDB version and some messages.
+        When you get a prompt, type the "show
+        dbs" command to list all the databases. Then
+        type the "use bobdb" command to create a
+        database named
+    <b>
+     bobdb
+    </b>
+    Like other NoSQL databases, MongoDB
+        saves everything as JSON objects. This line:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+db.students.save({first_name: "Jane", last_name: "Doe"});</code></pre>
+   <p>
+    will create a
+    <b>
+     collection
+    </b>
+    called "students" and store
+        the JSON object with the first_name and last_name
+        key: value pairs. As can be seen, there
+        will now be three JSON objects stored in
+        the "students" collection. A collection in MongoDB is
+        similar to a table in a relational database.
+   </p>
+   <p>
+    To query that database from within the mongo
+        prompt, you do this:
+   </p>
+   <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
+&gt; db.students.find({})
+{ "_id" : ObjectId("5d99634427bba89d1b4bc224"), "first_name" : "Jane", "last_name" : "Doe" }
+{ "_id" : ObjectId("5d99634b27bba89d1b4bc225"), "first_name" : "John", "last_name" : "Doe" }
+{ "_id" : ObjectId("5d99635927bba89d1b4bc226"), "first_name" : "Bill", "last_name" : "Gates" }</code></pre>
+   <p>
+    By leaving the curly braces ({ }) empty
+        on the first line, all the objects in
+        the students collection are returned.
+   </p>
+   <p>
+   </p>
+   <p>
+   </p>
+   <p>
+   </p>
+  </div>
+  <div id="footer">
+   <a href="../index-2.html">
+    Home
+   </a>
+   <a href="setup.html">
+    Up
+   </a>
+  </div>
+ </body>
+</html>
