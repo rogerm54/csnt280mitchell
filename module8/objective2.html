@@ -368,7 +368,7 @@ node queries.js</code></pre>
    <p>
     Now, let
    </p>
-   <pre class="line-numbers" data-line="7-19"><code class="language-markup">
+   <pre class="line-numbers" data-line="6-18"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
@@ -388,10 +388,10 @@ function getCars(request, response) {
 }
 module.exports = { getCars };</code></pre>
    <p>
-    The new lines are lines 7-19. Line 7
+    The new lines are lines 6-18. Line 6
         just comments out the line that closes the
         connection to the MongoDB server as we want
-        the connection to persist. Lines 8-12 define a
+        the connection to persist. Lines 7-11 define a
         schema that mongoose will use to communicate with
         the database. Although MongoDB (like all NoSQL databases)
         is schema-less,
@@ -424,7 +424,7 @@ module.exports = { getCars };</code></pre>
     .
    </p>
    <p>
-    Line 13 creates the
+    Line 12 creates the
     <b>
      Car
     </b>
@@ -445,12 +445,12 @@ module.exports = { getCars };</code></pre>
     collection in the cars_db database.
    </p>
    <p>
-    Lines 11-16 define the
+    Lines 10-15 define the
     <b>
      getCars()
     </b>
     function. On line
-        15,
+        14,
     <b>
      Car.find()
     </b>
@@ -465,13 +465,13 @@ module.exports = { getCars };</code></pre>
      .then
     </b>
     clause.
-        Lines 15-16 will cause the returned values to
+        Lines 14-15 will cause the returned values to
         be placed in a response with a status
         code of 200 (normal response) and a value
         which is the returned values in JSON format.
    </p>
    <p>
-    Finally, line 19 makes the
+    Finally, line 18 makes the
     <b>
      getCars()
     </b>
