@@ -168,7 +168,7 @@ switched to db cars</code></pre>
         run geany to create "index.js":
    </p>
    <p>
-    $ cd ~/Desktop/node_area/docker_mongo/docs/cars
+    $ cd ~/Desktop/node_area/docs/cars
    </p>
    <p>
     $ geany index.js &amp;
@@ -331,7 +331,7 @@ app listening on port 3000</code></pre>
     In the host terminal, create a file called
         "queries.js" inside the
     <b>
-     ~/Desktop/node_area/docker_mongo/docs/cars
+     ~/Desktop/node_area/docs/cars
     </b>
     directory:
    </p>
@@ -748,11 +748,7 @@ Car created</code></pre>
    <pre class="line-numbers" data-line="33-39"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://172.17.0.2:27017/cars_db",
-   {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-   })
+mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
    .catch(error =&gt; {console.log(error)});
 let db = mongoose.connection;
 //db.close();
@@ -908,11 +904,7 @@ http://localhost:3000/cars</code></pre>
    <pre class="line-numbers" data-line="39-56"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://172.17.0.2:27017/cars_db",
-   {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-   })
+mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
    .catch(error =&gt; {console.log(error)});
 let db = mongoose.connection;
 //db.close();
@@ -1102,7 +1094,7 @@ Car updated</code></pre>
    <pre class="line-numbers" data-line="55-64,66"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://172.17.0.2:27017/cars_db",
+mongoose.connect("mongodb://127.0.0.1:27017/cars_db",
    {
       useNewUrlParser: true,
       useUnifiedTopology: true
@@ -1282,11 +1274,7 @@ Car deleted</code></pre>
    <pre class="line-numbers" data-line="12,24,26-29,49-50"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://172.17.0.2:27017/cars_db",
-   {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-   })
+mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
    .catch(error =&gt; {console.log(error)});
 let db = mongoose.connection;
 //db.close();
