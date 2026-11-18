@@ -744,7 +744,7 @@ Car created</code></pre>
         process of getting the existing data for a
         document:
    </p>
-   <pre class="line-numbers" data-line="33-39"><code class="language-markup">
+   <pre class="line-numbers" data-line="29-35"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
@@ -781,12 +781,12 @@ function getCarById(request, response) {
 }
 module.exports = { getCars, createCar, getCarById };</code></pre>
    <p>
-    The new lines are lines 33-39. Lines 33-38 define
+    The new lines are lines 29-35. Lines 29-34 define
         the
     <b>
      getCarById()
     </b>
-    function. Line 37 will get the
+    function. Line 30 will get the
         id that is passed as part of the
         URL when calling this function. For example, the
         URL to use to request the document with
@@ -900,7 +900,7 @@ http://localhost:3000/cars</code></pre>
     that can be used to update a car
         document. Here is the new version of "queries.js":
    </p>
-   <pre class="line-numbers" data-line="39-56"><code class="language-markup">
+   <pre class="line-numbers" data-line="35-52"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
@@ -954,13 +954,13 @@ function updateCar(request, response) {
 module.exports = { getCars, createCar, getCarById,
    updateCar };</code></pre>
    <p>
-    The new lines are lines 39-56. Lines 39-54
+    The new lines are lines 35-52. Lines 35-50
         define the
     <b>
      updateCar()
     </b>
-    function. Line 42 gets the
-        id from the URL. Line 43 gets the
+    function. Line 36 gets the
+        id from the URL. Line 37 gets the
     <b>
      car_make
     </b>
@@ -974,7 +974,7 @@ module.exports = { getCars, createCar, getCarById,
     </car_price>
    </p>
    <p>
-    Lines 42-52 call the mongoose function,
+    Lines 38-49 call the mongoose function,
     <b>
      findByIdAndUpdate()
     </b>
@@ -991,7 +991,7 @@ module.exports = { getCars, createCar, getCarById,
         The second argument is the JSON object with
         the updated values for the document. Note how
         the variables from the POST request are used
-        on lines 49-51. The third argument is used
+        on lines 38-42. The third argument is used
         to avoid a DeprecationWarning about
     <b>
      findAndModify
@@ -1000,10 +1000,10 @@ module.exports = { getCars, createCar, getCarById,
         argument is the callback function that  will set
         the response status code to 200 and display
         a message to the console 'Car updated\n' on
-        line 51.
+        line 47.
    </p>
    <p>
-    Lines 55-56 have been modified to include the
+    Lines 51-52 have been modified to include the
     <b>
      updateCar()
     </b>
