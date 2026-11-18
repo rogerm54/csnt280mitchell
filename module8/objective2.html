@@ -1270,7 +1270,7 @@ Car deleted</code></pre>
         updating only the keys you want when modifying
         a car document:
    </p>
-   <pre class="line-numbers" data-line="12,24,26-29,49-50"><code class="language-markup">
+   <pre class="line-numbers" data-line="9-11,21,23-26,46-47"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
@@ -1329,8 +1329,8 @@ function deleteCar(request, response) {
 module.exports = { getCars, createCar, getCarById,
   updateCar, deleteCar};</code></pre>
    <p>
-    The new lines are line 12, line 24,
-        lines 26-29 and lines 49-50. Line 12 adds
+    The new lines are line 9-11, line 21,
+        lines 23-26 and lines 46-47. Line 9 adds
         the
     <b>
      _id
@@ -1348,7 +1348,7 @@ module.exports = { getCars, createCar, getCarById,
     function.
    </p>
    <p>
-    Line 24 has been modified to use
+    Line 21 has been modified to use
     <b>
      make
     </b>
@@ -1364,7 +1364,7 @@ module.exports = { getCars, createCar, getCarById,
         will prevent the problem where you use a
         different set of key names depending on whether
         you want to create a new car document
-        versus updating an existing car document. Line 26
+        versus updating an existing car document. Line 23
         adds in the additional key,
     <b>
      _id
@@ -1379,16 +1379,16 @@ module.exports = { getCars, createCar, getCarById,
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
 mongoose.mongo.ObjectId()</code></pre>
    <p>
-    Lines 27-29 have been modified to use the
+    Lines 24-26 have been modified to use the
         new parameter names (make, model and price instead
         of car_make, car_model and car_price).
    </p>
    <p>
-    Lines 41-50 are the changes in the
+    Lines 38-47 are the changes in the
     <b>
      updateCar()
     </b>
-    function. Line 49 makes it so that you
+    function. Line 46 makes it so that you
         can choose to update just one or several
         of the key values. Whatever the request body
         contains, will be stored in the
@@ -1396,7 +1396,7 @@ mongoose.mongo.ObjectId()</code></pre>
      update
     </b>
     variable.
-        Line 50 is modified to use the call
+        Line 47 is modified to use the call
         to this function:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
@@ -1405,7 +1405,7 @@ mongoose.mongo.ObjectId()</code></pre>
     This is required because the string that is
         displayed for the id has to be converted
         back into an integer by this function. Also
-        on line 50, the second argument has been
+        on line 47, the second argument has been
         changed from:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
