@@ -931,7 +931,7 @@ function createCar(request, response) {
 }
 function getCarById(request, response) {
    const id = request.params.id;
-   Car.findById(new mongoose.mongo.ObjectId(id).then( car) =&gt; {
+   Car.findById(new mongoose.mongo.ObjectId(id).then( car =&gt; {
       response.status(200).json(car);
    });
 }
