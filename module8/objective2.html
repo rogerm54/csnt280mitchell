@@ -1270,7 +1270,7 @@ Car deleted</code></pre>
         updating only the keys you want when modifying
         a car document:
    </p>
-   <pre class="line-numbers" data-line="9-11,20,22-25,39-40"><code class="language-markup">
+   <pre class="line-numbers" data-line="8-11,20,22-25,39-40"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
@@ -1329,8 +1329,8 @@ function deleteCar(request, response) {
 module.exports = { getCars, createCar, getCarById,
   updateCar, deleteCar};</code></pre>
    <p>
-    The new lines are line 9-11, line 20,
-        lines 22-25 and lines 39-40. Line 9 adds
+    The new lines are line 8-11, line 20,
+        lines 22-25 and lines 39-40. Line 8 adds
         the
     <b>
      _id
