@@ -1270,7 +1270,7 @@ Car deleted</code></pre>
         updating only the keys you want when modifying
         a car document:
    </p>
-   <pre class="line-numbers" data-line="9-11,21,23-26,46-47"><code class="language-markup">
+   <pre class="line-numbers" data-line="9-11,21,23-26,39-40"><code class="language-markup">
 // queries.js
 const mongoose = require("mongoose");
 mongoose.connect("mongodb://127.0.0.1:27017/cars_db")
@@ -1330,7 +1330,7 @@ module.exports = { getCars, createCar, getCarById,
   updateCar, deleteCar};</code></pre>
    <p>
     The new lines are line 9-11, line 21,
-        lines 23-26 and lines 46-47. Line 9 adds
+        lines 23-26 and lines 39-40. Line 9 adds
         the
     <b>
      _id
@@ -1388,7 +1388,7 @@ mongoose.mongo.ObjectId()</code></pre>
     <b>
      updateCar()
     </b>
-    function. Line 46 makes it so that you
+    function. Line 39 makes it so that you
         can choose to update just one or several
         of the key values. Whatever the request body
         contains, will be stored in the
@@ -1396,7 +1396,7 @@ mongoose.mongo.ObjectId()</code></pre>
      update
     </b>
     variable.
-        Line 47 is modified to use the call
+        Line 40 is modified to use the call
         to this function:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
@@ -1405,7 +1405,7 @@ mongoose.mongo.ObjectId()</code></pre>
     This is required because the string that is
         displayed for the id has to be converted
         back into an integer by this function. Also
-        on line 47, the second argument has been
+        on line 40, the second argument has been
         changed from:
    </p>
    <pre><code class="language-markup" style="font-family: Anonymous Pro;font-size: 85%;">
